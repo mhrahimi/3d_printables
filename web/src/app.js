@@ -17,7 +17,8 @@ const MATERIALS = {
 const OFFSETS = [-0.1, -0.05, 0, 0.05, 0.1];
 const RAILS = { standard: { dt_height: 1.6, dt_neck: 5 }, sturdy: { dt_height: 2.0, dt_neck: 6 } };
 const CASE_COLORS = [['Deep blue', '#12325c'], ['Graphite', '#30343b'], ['Grey', '#aeb6c2'], ['White', '#eef2f5'], ['Orange', '#e8742a']];
-const DRAWER_COLORS = [['Cyan', '#5ae8d3'], ['Orange', '#f08a24'], ['Yellow', '#f2c230'], ['White', '#f1f4f6'], ['Clear', 'clear']];
+// cyan is the page's own highlight colour, so it is not offered for drawers
+const DRAWER_COLORS = [['White', '#f1f4f6'], ['Orange', '#f08a24'], ['Yellow', '#f2c230'], ['Red', '#d9473a'], ['Clear', 'clear']];
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 const ICON = (id) => `<svg class="ic" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const LIMITS = { cols: [1, 8], rows: 12, unit_w: [60, 120], unit_h: [32, 80], depth: [80, 220] };
@@ -61,6 +62,8 @@ try {
     // no finish panels by default: designs still on the old defaults (labelled top, minimal sides, base plate) lose them
     const f0 = saved.finish;
     if (!saved.finNone && f0 && f0.top === 'labeled' && f0.sides === 'minimal' && f0.bottom === 'plate') { f0.top = 'none'; f0.sides = 'none'; f0.bottom = 'none'; }
+    // cyan drawers looked like the page's highlight: move them to white
+    if (saved.drawerColor === '#5ae8d3') saved.drawerColor = '#f1f4f6';
     state = { ...state, ...saved };
   }
   state.legs15 = true; state.legs75 = true; state.finNone = true;
