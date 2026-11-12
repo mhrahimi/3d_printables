@@ -20,8 +20,8 @@ without supports on a 256 mm bed.
   take one title or one label per column and row; letters are pressed in or raised, and top
   labels can sit on a tilted strip. Structural panels take round rod or square bar of any size
   from 3 to 12 mm. The bottom is a base plate or a base with legs.
-- **Fit your printer.** Choose PLA, PETG or ABS/ASA for starting clearances; a test kit with
-  rail and drawer pieces tells you how to fine-tune them. Standard or sturdy rails, lip or
+- **Fit your printer.** Choose PLA, PETG or ABS/ASA for starting clearances; a
+  [fit test kit](docs/fit-test-kit.md) with rail and drawer pieces tells you how to fine-tune them. Standard or sturdy rails, lip or
   finger-notch pulls.
 - **Print it.** The download is a ZIP with one STL per part in print orientation (quantity in
   the file name), the assembled wall, a parts list (CSV), print notes and the rod cut list.
@@ -35,8 +35,8 @@ without supports on a 256 mm bed.
 
 ## Print it
 
-1. **Choose your filament and print the fit test kit first** (about 100 g, included in every
-   download). The groove piece and drawer slice that fit best tell you whether to adjust the
+1. **Choose your filament and print the [fit test kit](docs/fit-test-kit.md) first** (about
+   100 g, one ZIP per filament and rail size). The groove piece and drawer slice that fit best tell you whether to adjust the
    clearances under *3 Print → Advanced*.
 2. **Print the parts** with a 0.4 mm nozzle, 0.20 mm layers, 3 walls, 15% infill and no
    supports. Do not rotate or scale the files.

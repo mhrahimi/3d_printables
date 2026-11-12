@@ -8,6 +8,7 @@ const CDN = {
 };
 // absolute, so the link still works in the README inside a downloaded ZIP
 const GUIDE_URL = new URL('__GUIDE_URL__', location.href).href;
+const KIT_URL = new URL('__DOCS_URL__fit-test-kit.html', location.href).href;
 /** Starting clearances per side (mm) and density per filament; see docs/materials. */
 const MATERIALS = {
   PLA: { label: 'PLA / PLA+', rail: 0.25, side: 0.35, top: 0.5, rho: 1.24 },
@@ -46,7 +47,7 @@ const EXAMPLE = () => ({
     // printed pieces per panel group: 'long' as long as the bed allows | 'each' one per column (top, bottom) or row (sides)
     pieces_top: 'long', pieces_sides: 'long', pieces_bottom: 'long',
     topLabel: 'Workshop', leftLabel: '', rightLabel: '', colLabels: [] },
-  testKit: true, showDims: true,
+  showDims: true,
   caseColor: CASE_COLORS[0][1], drawerColor: DRAWER_COLORS[0][1],
   unit_w: 60, unit_h: 40, depth: 130, material: 'PLA', railOffset: 0, drawerOffset: 0, rails: 'standard', pull: 'lip',
 });
@@ -296,23 +297,6 @@ function buildDef(p, def) {
   if (def.kind === 'plug') return getPart(p, def.key, 'plug', () => K.plug(p, def.rod));
   return getPart(p, def.key, 'panel', () => K.panel(p, def.opt), def.pose);
 }
-/** Test pieces centred on the filament's presets: 3 notches = preset rail clearance, 2 = preset drawer gap. */
-const kitRails = (m) => OFFSETS.map((o, i) => ({ fit: +(m.rail + o).toFixed(2), notches: i + 1, offset: o }));
-const kitDrawers = (m) => [-0.1, 0, 0.1].map((o, i) => ({ gap: +(m.side + o).toFixed(2), notches: i + 1, offset: o }));
-function testKit(p) {
-  const q = { ...p, depth: 48 }, mat = MATERIALS[state.material];
-  const out = [['test_rail', getPart(p, 'test_rail', 'coupon', () => K.couponRail(p)), 1]];
-  for (const g of kitRails(mat)) out.push([`test_groove_${g.fit.toFixed(2)}mm_${g.notches}-notch`,
-    getPart(p, `test_groove_${g.notches}`, 'coupon', () => K.couponGroove(p, g.fit, g.notches)), 1]);
-  const pd = { ...p, fit_side: mat.side, fit_top: mat.top };
-  out.push(['test_drawer_opening', getPart(p, 'test_drawer_ring', 'case', () => K.couponDrawerCase(pd)), 1]);
-  for (const d of kitDrawers(mat)) out.push([`test_drawer_slice_${d.gap.toFixed(2)}mm_${d.notches}-notch`,
-    getPart(p, `test_drawer_slice_${d.notches}`, 'case', () => K.couponDrawer(pd, d.gap, d.notches)), 1]);
-  out.push(['test_mini_casing', getPart(p, 'test_mini_case', 'case', () => K.case(q, 1, 1)), 2]);
-  out.push(['test_mini_drawer', getPart(p, 'test_mini_drawer', 'drawer', () => K.drawer(q, 1, 1, {})), 1]);
-  return out;
-}
-
 // ---------------------------------------------------------------- model (state -> everything derived)
 let model = null;
 function compute() {
@@ -692,7 +676,6 @@ function renderControls(m) {
   $('style-note').textContent = state.style === 'removable'
     ? 'Drawers get slots and separate divider plates you can lift out. Dividers run front to back only.'
     : 'Partition walls are printed as part of the drawer, across and front to back.';
-  $('opt-kit').checked = state.testKit;
   const f = state.finish;
   for (const b of document.querySelectorAll('[data-fin]')) b.setAttribute('aria-pressed', String(String(f[b.dataset.fin]) === b.dataset.v));
   const topL = f.top === 'labeled', sideL = f.sides === 'labeled';
@@ -880,7 +863,6 @@ function bind() {
   };
   $('leg-down').onclick = () => { state.finish.legH -= 2.5; update(); };
   $('leg-up').onclick = () => { state.finish.legH += 2.5; update(); };
-  $('opt-kit').onchange = (e) => { state.testKit = e.target.checked; update(); };
   document.addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-color]'); if (!b) return;
     state[b.dataset.color === 'case' ? 'caseColor' : 'drawerColor'] = b.dataset.v; update();
@@ -971,7 +953,7 @@ async function copyList() {
   catch { setStatus('Copying is blocked in this view. Select the table and copy it by hand.', 'bad'); }
 }
 
-function readme(m, kit) {
+function readme(m) {
   const p = m.p, rows = state.rows.map((r, i) => {
     const part = r.across > 1 || r.deep > 1 ? `, ${r.across}${state.style === 'removable' ? ' compartments with removable dividers' : ` x ${r.deep} printed-in compartments`}` : '';
     return `  Row ${i + 1}${i === 0 ? ' (top)' : ''}: drawers ${r.m} wide, ${r.h} high${part}`;
@@ -989,25 +971,18 @@ ${partsText(m).split('\n').slice(2).join('\n')}
 
   print/     one STL per part. The number in front of each file name is how many to print.
   assembly/  the whole wall as one model, for viewing. Do not print it.
-${kit ? '  test_kit/  print this first (see below).\n' : ''}  parts.csv  the same list as a spreadsheet.
+  parts.csv  the same list as a spreadsheet.
 
 PRINT SETTINGS
   The STL files are already in print orientation. Do not rotate or scale them.
   0.4 mm nozzle, 0.20 mm layers, 3 wall loops, 15% infill, no supports.
   Elephant's foot compensation 0.15 mm. Filament: ${MATERIALS[state.material].label}${state.material === 'ABS' ? ' (enclosure and a brim)' : ''}.
   Casings stand on their front face. Drawers print floor-down. Plates print flat.
-${kit ? `
-TEST KIT (print first, about 100 g)
-  Rails: slide each test_groove piece onto test_rail. 3 V-notches is the ${MATERIALS[state.material].label}
-  preset (${MATERIALS[state.material].rail.toFixed(2)} mm per side); each notch more or fewer is 0.05 mm looser or tighter.
-  Pick the tightest piece that slides the full length by hand without wobble.
-  Drawers: slide each test_drawer_slice into test_drawer_opening. 2 notches is the
-  preset (${MATERIALS[state.material].side.toFixed(2)} mm per side); 1 notch is 0.10 mm tighter, 3 notches 0.10 mm looser.
-  Pick the one that slides freely without rattling.
-  These files use ${p.fit_dovetail.toFixed(2)} mm (rails) and ${p.fit_side.toFixed(2)} mm (drawers). If a different piece
-  fitted best, adjust the clearance under 3 Print > Advanced in the builder and download again.
-  Join the two mini casings and try the mini drawer to feel both clicks.
-` : ''}
+
+FIT TEST KIT
+  Not sure about the clearances? Print the fit test kit first (about 100 g):
+  ${KIT_URL}
+  These files use ${p.fit_dovetail.toFixed(2)} mm (rails) and ${p.fit_side.toFixed(2)} mm (drawers) per side.
 FINISH
   Top: ${state.finish.top}. Sides: ${state.finish.sides}. Bottom: ${state.finish.bottom}${state.finish.bottom === 'legs' ? ` (${state.finish.legStyle} legs, ${state.finish.legH} mm)` : ''}.
   Panels lock on like casings: the top and right panels slide on from the front and click;
@@ -1058,8 +1033,6 @@ let fflate = null;
 function zipEntries(m) {
   const p = m.p, files = {};
   for (const d of m.parts) files[`print/${d.qty}x_${d.key}.stl`] = Kn.stlBytes(d.entry.print);
-  const kit = state.testKit ? testKit(p) : null;
-  if (kit) for (const [name, e, qty] of kit) files[`test_kit/${qty}x_${name}.stl`] = Kn.stlBytes(e.print);
   // assembled wall, z up, front facing -y
   const U = p.unit_w, V = p.unit_h, list = [];
   const at = (mesh, x, y) => ({ ...mesh, matrix: [1, 0, 0, x, 0, 0, -1, 0, 0, 1, 0, y] });
@@ -1074,7 +1047,7 @@ function zipEntries(m) {
   for (const d of m.parts) csv.push([`"${d.label}"`, `${d.qty}x_${d.key}.stl`, d.qty, ...d.size.map((s) => fmt(s)), Math.round(d.grams), Math.round(d.grams * d.qty)].join(','));
   const enc = new TextEncoder();
   files['parts.csv'] = enc.encode(csv.join('\n') + '\n');
-  files['README.txt'] = enc.encode(readme(m, !!kit));
+  files['README.txt'] = enc.encode(readme(m));
   return files;
 }
 async function downloadZip() {

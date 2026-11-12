@@ -84,6 +84,7 @@ button { cursor: pointer; }
 .masthead h1 { font-size: var(--fs-1); letter-spacing: 0.04em; }
 .masthead a { font-size: var(--fs--1); font-weight: 600; display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit); }
 .masthead .ic { width: 16px; height: 16px; }
+.mast-links { display: flex; gap: var(--s4); }
 .app { display: grid; grid-template-columns: var(--col) minmax(0, 1fr); align-items: start; }
 
 /* ------------------------------------------------------------ controls column */
@@ -211,7 +212,7 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .actions { display: flex; gap: var(--s2); flex-wrap: nowrap; align-items: center; margin-left: auto; flex: none; }
 .bar .btn { font-size: var(--fs--1); padding: 0 var(--s3); white-space: nowrap; }
 @container (max-width: 520px) { .zip-ext { display: none; } }
-@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } .kit-long { display: none; } }
+@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } }
 /* preview buttons keep only their icons on a narrow stage (names stay for screen readers) */
 .stage { container-type: inline-size; }
 @container (max-width: 620px) { #view-hint { display: none; } }
@@ -235,8 +236,6 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .view-tools .btn { background: var(--sheet); }
 .btn.icon { width: var(--hit); padding: 0; }
 .view-tools .btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-.kit-check { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--hit); padding-right: var(--s2); font-size: var(--fs--1); font-weight: 600; white-space: nowrap; cursor: pointer; }
-.kit-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
 #view-hint { position: absolute; left: var(--s4); bottom: var(--s3); right: var(--s4); font-size: var(--fs--1); color: var(--graphite); pointer-events: none; }
 .dims { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .dims span { position: absolute; left: 0; top: 0; padding: 1px 6px; font: 600 var(--fs--1)/1.4 var(--font-body); font-variant-numeric: tabular-nums;
@@ -337,7 +336,10 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
 
 <header class="masthead">
   <h1>Drawer wall builder</h1>
-  <a href="docs/build-guide.html" target="_blank" rel="noopener">Build guide<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+  <nav class="mast-links" aria-label="Guides">
+    <a href="docs/fit-test-kit.html" target="_blank" rel="noopener">Fit test kit<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+    <a href="docs/build-guide.html" target="_blank" rel="noopener">Build guide<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+  </nav>
 </header>
 
 <main class="app">
@@ -496,6 +498,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
             <label class="field" for="adv-depth"><span class="field-label">Depth (mm)</span><input type="number" class="text" id="adv-depth" min="80" max="220" step="5" inputmode="decimal"></label>
           </div>
           <p id="adv-note" class="hint" style="padding-top: var(--s3)"></p>
+          <p class="hint">Not sure which clearance fits your printer? Print the <a href="docs/fit-test-kit.html" target="_blank" rel="noopener">fit test kit</a> first.</p>
           <p class="hint">Modules only lock together if they share the unit size, depth and rail size. Clearances can differ between batches.</p>
           <p id="adv-errors" class="alert" role="alert" hidden></p>
         </details>
@@ -510,7 +513,6 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
     <div class="bar" role="region" aria-label="Summary and download">
       <dl id="stats" class="stats"></dl>
       <div class="actions">
-        <label class="kit-check" for="opt-kit" title="About 100 g: a rail with five groove pieces and a drawer opening with three drawer slices. Print it first; the piece that fits best tells you how to adjust the clearances under 3 Print > Advanced."><input type="checkbox" id="opt-kit"><span><span class="kit-long">Include the </span>fit test kit</span></label>
         <button type="button" id="btn-copy" class="btn quiet" title="Copy parts list"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg><span class="btn-text">Copy parts list</span></button>
         <button type="button" id="btn-zip" class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span id="zip-label">Download print files</span></button>
       </div>
@@ -550,7 +552,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
       <details class="howto">
         <summary><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>Printing and assembly in four steps</summary>
         <ol class="steps">
-          <li>Print the test kit first and note which groove piece slides best on the rail. If it is not 0.25 mm, set it under 3 Print.</li>
+          <li>Print the <a href="docs/fit-test-kit.html" target="_blank" rel="noopener">fit test kit</a> first. If a piece other than the preset fits best, set the difference under 3 Print &gt; Advanced.</li>
           <li>Print with a 0.4 mm nozzle, 0.20 mm layers, 3 wall loops and no supports. Do not rotate or scale the files.</li>
           <li>Lay out the base. Build from the bottom up and from left to right, sliding each empty casing in from the front until it clicks. Fit the side panels as you go and slide the top panels on last.</li>
           <li>Put the drawers in last. A drawer stops about three-quarters open; a firm pull takes it out.</li>
@@ -1626,6 +1628,7 @@ const CDN = {
 };
 // absolute, so the link still works in the README inside a downloaded ZIP
 const GUIDE_URL = new URL('docs/build-guide.html', location.href).href;
+const KIT_URL = new URL('docs/fit-test-kit.html', location.href).href;
 /** Starting clearances per side (mm) and density per filament; see docs/materials. */
 const MATERIALS = {
   PLA: { label: 'PLA / PLA+', rail: 0.25, side: 0.35, top: 0.5, rho: 1.24 },
@@ -1664,7 +1667,7 @@ const EXAMPLE = () => ({
     // printed pieces per panel group: 'long' as long as the bed allows | 'each' one per column (top, bottom) or row (sides)
     pieces_top: 'long', pieces_sides: 'long', pieces_bottom: 'long',
     topLabel: 'Workshop', leftLabel: '', rightLabel: '', colLabels: [] },
-  testKit: true, showDims: true,
+  showDims: true,
   caseColor: CASE_COLORS[0][1], drawerColor: DRAWER_COLORS[0][1],
   unit_w: 60, unit_h: 40, depth: 130, material: 'PLA', railOffset: 0, drawerOffset: 0, rails: 'standard', pull: 'lip',
 });
@@ -1914,23 +1917,6 @@ function buildDef(p, def) {
   if (def.kind === 'plug') return getPart(p, def.key, 'plug', () => K.plug(p, def.rod));
   return getPart(p, def.key, 'panel', () => K.panel(p, def.opt), def.pose);
 }
-/** Test pieces centred on the filament's presets: 3 notches = preset rail clearance, 2 = preset drawer gap. */
-const kitRails = (m) => OFFSETS.map((o, i) => ({ fit: +(m.rail + o).toFixed(2), notches: i + 1, offset: o }));
-const kitDrawers = (m) => [-0.1, 0, 0.1].map((o, i) => ({ gap: +(m.side + o).toFixed(2), notches: i + 1, offset: o }));
-function testKit(p) {
-  const q = { ...p, depth: 48 }, mat = MATERIALS[state.material];
-  const out = [['test_rail', getPart(p, 'test_rail', 'coupon', () => K.couponRail(p)), 1]];
-  for (const g of kitRails(mat)) out.push([`test_groove_${g.fit.toFixed(2)}mm_${g.notches}-notch`,
-    getPart(p, `test_groove_${g.notches}`, 'coupon', () => K.couponGroove(p, g.fit, g.notches)), 1]);
-  const pd = { ...p, fit_side: mat.side, fit_top: mat.top };
-  out.push(['test_drawer_opening', getPart(p, 'test_drawer_ring', 'case', () => K.couponDrawerCase(pd)), 1]);
-  for (const d of kitDrawers(mat)) out.push([`test_drawer_slice_${d.gap.toFixed(2)}mm_${d.notches}-notch`,
-    getPart(p, `test_drawer_slice_${d.notches}`, 'case', () => K.couponDrawer(pd, d.gap, d.notches)), 1]);
-  out.push(['test_mini_casing', getPart(p, 'test_mini_case', 'case', () => K.case(q, 1, 1)), 2]);
-  out.push(['test_mini_drawer', getPart(p, 'test_mini_drawer', 'drawer', () => K.drawer(q, 1, 1, {})), 1]);
-  return out;
-}
-
 // ---------------------------------------------------------------- model (state -> everything derived)
 let model = null;
 function compute() {
@@ -2310,7 +2296,6 @@ function renderControls(m) {
   $('style-note').textContent = state.style === 'removable'
     ? 'Drawers get slots and separate divider plates you can lift out. Dividers run front to back only.'
     : 'Partition walls are printed as part of the drawer, across and front to back.';
-  $('opt-kit').checked = state.testKit;
   const f = state.finish;
   for (const b of document.querySelectorAll('[data-fin]')) b.setAttribute('aria-pressed', String(String(f[b.dataset.fin]) === b.dataset.v));
   const topL = f.top === 'labeled', sideL = f.sides === 'labeled';
@@ -2498,7 +2483,6 @@ function bind() {
   };
   $('leg-down').onclick = () => { state.finish.legH -= 2.5; update(); };
   $('leg-up').onclick = () => { state.finish.legH += 2.5; update(); };
-  $('opt-kit').onchange = (e) => { state.testKit = e.target.checked; update(); };
   document.addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-color]'); if (!b) return;
     state[b.dataset.color === 'case' ? 'caseColor' : 'drawerColor'] = b.dataset.v; update();
@@ -2589,7 +2573,7 @@ async function copyList() {
   catch { setStatus('Copying is blocked in this view. Select the table and copy it by hand.', 'bad'); }
 }
 
-function readme(m, kit) {
+function readme(m) {
   const p = m.p, rows = state.rows.map((r, i) => {
     const part = r.across > 1 || r.deep > 1 ? `, ${r.across}${state.style === 'removable' ? ' compartments with removable dividers' : ` x ${r.deep} printed-in compartments`}` : '';
     return `  Row ${i + 1}${i === 0 ? ' (top)' : ''}: drawers ${r.m} wide, ${r.h} high${part}`;
@@ -2607,25 +2591,18 @@ ${partsText(m).split('\n').slice(2).join('\n')}
 
   print/     one STL per part. The number in front of each file name is how many to print.
   assembly/  the whole wall as one model, for viewing. Do not print it.
-${kit ? '  test_kit/  print this first (see below).\n' : ''}  parts.csv  the same list as a spreadsheet.
+  parts.csv  the same list as a spreadsheet.
 
 PRINT SETTINGS
   The STL files are already in print orientation. Do not rotate or scale them.
   0.4 mm nozzle, 0.20 mm layers, 3 wall loops, 15% infill, no supports.
   Elephant's foot compensation 0.15 mm. Filament: ${MATERIALS[state.material].label}${state.material === 'ABS' ? ' (enclosure and a brim)' : ''}.
   Casings stand on their front face. Drawers print floor-down. Plates print flat.
-${kit ? `
-TEST KIT (print first, about 100 g)
-  Rails: slide each test_groove piece onto test_rail. 3 V-notches is the ${MATERIALS[state.material].label}
-  preset (${MATERIALS[state.material].rail.toFixed(2)} mm per side); each notch more or fewer is 0.05 mm looser or tighter.
-  Pick the tightest piece that slides the full length by hand without wobble.
-  Drawers: slide each test_drawer_slice into test_drawer_opening. 2 notches is the
-  preset (${MATERIALS[state.material].side.toFixed(2)} mm per side); 1 notch is 0.10 mm tighter, 3 notches 0.10 mm looser.
-  Pick the one that slides freely without rattling.
-  These files use ${p.fit_dovetail.toFixed(2)} mm (rails) and ${p.fit_side.toFixed(2)} mm (drawers). If a different piece
-  fitted best, adjust the clearance under 3 Print > Advanced in the builder and download again.
-  Join the two mini casings and try the mini drawer to feel both clicks.
-` : ''}
+
+FIT TEST KIT
+  Not sure about the clearances? Print the fit test kit first (about 100 g):
+  ${KIT_URL}
+  These files use ${p.fit_dovetail.toFixed(2)} mm (rails) and ${p.fit_side.toFixed(2)} mm (drawers) per side.
 FINISH
   Top: ${state.finish.top}. Sides: ${state.finish.sides}. Bottom: ${state.finish.bottom}${state.finish.bottom === 'legs' ? ` (${state.finish.legStyle} legs, ${state.finish.legH} mm)` : ''}.
   Panels lock on like casings: the top and right panels slide on from the front and click;
@@ -2676,8 +2653,6 @@ let fflate = null;
 function zipEntries(m) {
   const p = m.p, files = {};
   for (const d of m.parts) files[`print/${d.qty}x_${d.key}.stl`] = Kn.stlBytes(d.entry.print);
-  const kit = state.testKit ? testKit(p) : null;
-  if (kit) for (const [name, e, qty] of kit) files[`test_kit/${qty}x_${name}.stl`] = Kn.stlBytes(e.print);
   // assembled wall, z up, front facing -y
   const U = p.unit_w, V = p.unit_h, list = [];
   const at = (mesh, x, y) => ({ ...mesh, matrix: [1, 0, 0, x, 0, 0, -1, 0, 0, 1, 0, y] });
@@ -2692,7 +2667,7 @@ function zipEntries(m) {
   for (const d of m.parts) csv.push([`"${d.label}"`, `${d.qty}x_${d.key}.stl`, d.qty, ...d.size.map((s) => fmt(s)), Math.round(d.grams), Math.round(d.grams * d.qty)].join(','));
   const enc = new TextEncoder();
   files['parts.csv'] = enc.encode(csv.join('\n') + '\n');
-  files['README.txt'] = enc.encode(readme(m, !!kit));
+  files['README.txt'] = enc.encode(readme(m));
   return files;
 }
 async function downloadZip() {

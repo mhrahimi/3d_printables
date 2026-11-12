@@ -32,7 +32,8 @@ Every module is a casing plus a removable drawer, on a 60 × 40 mm grid, 130 mm 
 ![Test kit in print orientation](images/15_test_kit_crop.png)
 
 Printers differ by a tenth of a millimetre or two. Choose your [filament](materials.md) first:
-the test pieces are centred on its preset. Then print the test kit (about 100 g):
+the test pieces are centred on its preset. Then download the matching kit from the
+[fit test kit page](fit-test-kit.md) and print it (about 100 g):
 
 1. **Rails.** Slide each groove piece onto `test_rail`. 3 V-notches is the preset (0.25 mm per
    side for PLA); each notch more or fewer is 0.05 mm looser or tighter. Pick the tightest piece

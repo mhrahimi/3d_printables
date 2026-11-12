@@ -5,7 +5,7 @@
 - Filament choice (PLA, PETG, ABS/ASA) sets the starting rail and drawer clearances; a new
   [filament page](docs/materials.md) explains the choice.
 - Clearances are now fine-tuned as offsets from the preset (±0.10 mm) under *Advanced*.
-- Test kit: groove pieces centred on the preset, plus a drawer opening and three drawer slices.
+- Fit test kit: groove pieces centred on the preset, plus a drawer opening and three drawer slices.
 - Sturdy rails option (2.0 mm high, 6 mm neck), in the builder and `cad/build.py --rails sturdy`.
 - Finger-notch drawer pull as an alternative to the lip.
 - New tests: whole walls checked part against part (drawers closed and at their stops), and
@@ -19,8 +19,10 @@
 - New walls start with no top, sides or bottom; add them under 2 Finish.
 - Drawers preview in white by default; cyan is no longer a drawer colour (it is the page's
   highlight colour). Red is offered instead.
-- The 3D view buttons are icons only (open drawers, dimensions, reset view), and the fit test
-  kit switch sits next to the download button.
+- The 3D view buttons are icons only (open drawers, dimensions, reset view).
+- The fit test kit has its own [page](docs/fit-test-kit.md), linked from the builder's header,
+  with a ready-made ZIP for each filament and rail size (`npm run kits` rebuilds them). It is no
+  longer part of the builder's download.
 
 ## 1.0.0 — 2026-11-12
 

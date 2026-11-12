@@ -82,6 +82,7 @@ button { cursor: pointer; }
 .masthead h1 { font-size: var(--fs-1); letter-spacing: 0.04em; }
 .masthead a { font-size: var(--fs--1); font-weight: 600; display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit); }
 .masthead .ic { width: 16px; height: 16px; }
+.mast-links { display: flex; gap: var(--s4); }
 .app { display: grid; grid-template-columns: var(--col) minmax(0, 1fr); align-items: start; }
 
 /* ------------------------------------------------------------ controls column */
@@ -209,7 +210,7 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .actions { display: flex; gap: var(--s2); flex-wrap: nowrap; align-items: center; margin-left: auto; flex: none; }
 .bar .btn { font-size: var(--fs--1); padding: 0 var(--s3); white-space: nowrap; }
 @container (max-width: 520px) { .zip-ext { display: none; } }
-@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } .kit-long { display: none; } }
+@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } }
 /* preview buttons keep only their icons on a narrow stage (names stay for screen readers) */
 .stage { container-type: inline-size; }
 @container (max-width: 620px) { #view-hint { display: none; } }
@@ -233,8 +234,6 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .view-tools .btn { background: var(--sheet); }
 .btn.icon { width: var(--hit); padding: 0; }
 .view-tools .btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-.kit-check { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--hit); padding-right: var(--s2); font-size: var(--fs--1); font-weight: 600; white-space: nowrap; cursor: pointer; }
-.kit-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
 #view-hint { position: absolute; left: var(--s4); bottom: var(--s3); right: var(--s4); font-size: var(--fs--1); color: var(--graphite); pointer-events: none; }
 .dims { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .dims span { position: absolute; left: 0; top: 0; padding: 1px 6px; font: 600 var(--fs--1)/1.4 var(--font-body); font-variant-numeric: tabular-nums;
@@ -335,7 +334,10 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
 
 <header class="masthead">
   <h1>Drawer wall builder</h1>
-  <a href="__GUIDE_URL__" target="_blank" rel="noopener">Build guide<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+  <nav class="mast-links" aria-label="Guides">
+    <a href="__DOCS_URL__fit-test-kit.html" target="_blank" rel="noopener">Fit test kit<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+    <a href="__GUIDE_URL__" target="_blank" rel="noopener">Build guide<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+  </nav>
 </header>
 
 <main class="app">
@@ -494,6 +496,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
             <label class="field" for="adv-depth"><span class="field-label">Depth (mm)</span><input type="number" class="text" id="adv-depth" min="80" max="220" step="5" inputmode="decimal"></label>
           </div>
           <p id="adv-note" class="hint" style="padding-top: var(--s3)"></p>
+          <p class="hint">Not sure which clearance fits your printer? Print the <a href="__DOCS_URL__fit-test-kit.html" target="_blank" rel="noopener">fit test kit</a> first.</p>
           <p class="hint">Modules only lock together if they share the unit size, depth and rail size. Clearances can differ between batches.</p>
           <p id="adv-errors" class="alert" role="alert" hidden></p>
         </details>
@@ -508,7 +511,6 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
     <div class="bar" role="region" aria-label="Summary and download">
       <dl id="stats" class="stats"></dl>
       <div class="actions">
-        <label class="kit-check" for="opt-kit" title="About 100 g: a rail with five groove pieces and a drawer opening with three drawer slices. Print it first; the piece that fits best tells you how to adjust the clearances under 3 Print > Advanced."><input type="checkbox" id="opt-kit"><span><span class="kit-long">Include the </span>fit test kit</span></label>
         <button type="button" id="btn-copy" class="btn quiet" title="Copy parts list"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg><span class="btn-text">Copy parts list</span></button>
         <button type="button" id="btn-zip" class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span id="zip-label">Download print files</span></button>
       </div>
@@ -548,7 +550,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
       <details class="howto">
         <summary><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>Printing and assembly in four steps</summary>
         <ol class="steps">
-          <li>Print the test kit first and note which groove piece slides best on the rail. If it is not 0.25 mm, set it under 3 Print.</li>
+          <li>Print the <a href="__DOCS_URL__fit-test-kit.html" target="_blank" rel="noopener">fit test kit</a> first. If a piece other than the preset fits best, set the difference under 3 Print &gt; Advanced.</li>
           <li>Print with a 0.4 mm nozzle, 0.20 mm layers, 3 wall loops and no supports. Do not rotate or scale the files.</li>
           <li>Lay out the base. Build from the bottom up and from left to right, sliding each empty casing in from the front until it clicks. Fit the side panels as you go and slide the top panels on last.</li>
           <li>Put the drawers in last. A drawer stops about three-quarters open; a firm pull takes it out.</li>

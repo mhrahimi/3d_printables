@@ -7,7 +7,7 @@ title: Choosing a filament
 [← Builder](../index.html) · [Build guide](build-guide.md)
 
 Pick the filament in the builder under **3 Print → Filament**. It sets the starting
-clearances, and the fit test kit is centred on them, so one test print tells you which way to
+clearances, and the [fit test kit](fit-test-kit.md) is centred on them, so one test print tells you which way to
 adjust.
 
 | | PLA / PLA+ | PETG | ABS / ASA |
