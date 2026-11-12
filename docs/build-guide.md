@@ -6,7 +6,8 @@ title: Build guide
 
 How to print, assemble and tune the drawer wall. The parts come from the
 [builder](../index.html), or as reference files for the default grid in
-[`models/`](../models/README.md).
+[`models/`](../models/README.md). See also [Choosing a filament](materials.md) and
+[Where the numbers come from](sources.md).
 
 ![Example wall](images/01_example_wall_crop.png)
 
@@ -30,13 +31,17 @@ Every module is a casing plus a removable drawer, on a 60 × 40 mm grid, 130 mm 
 
 ![Test kit in print orientation](images/15_test_kit_crop.png)
 
-Printers differ by a tenth of a millimetre or two. Print the test kit first (about 85 g):
+Printers differ by a tenth of a millimetre or two. Choose your [filament](materials.md) first:
+the test pieces are centred on its preset. Then print the test kit (about 100 g):
 
-1. Slide each groove piece onto `test_rail`. The number of V-notches gives its clearance per
-   side: 1 = 0.15, 2 = 0.20, 3 = 0.25 (default), 4 = 0.30, 5 = 0.35 mm.
-2. Pick the tightest piece that slides the full length without wobble.
-3. In the builder, set it under **3 Print → Rail clearance**. With the CAD source:
-   `python build.py --set fit_dovetail=0.30`.
+1. **Rails.** Slide each groove piece onto `test_rail`. 3 V-notches is the preset (0.25 mm per
+   side for PLA); each notch more or fewer is 0.05 mm looser or tighter. Pick the tightest piece
+   that slides the full length without wobble.
+2. **Drawers.** Slide each drawer slice into `test_drawer_opening`. 2 notches is the preset
+   (0.35 mm per side for PLA); 1 notch is 0.10 mm tighter, 3 notches 0.10 mm looser. Pick the
+   one that slides freely without rattling.
+3. If another piece fitted best, set the difference in the builder under
+   **3 Print → Advanced**. With the CAD source: `python build.py --material petg --set fit_dovetail=0.35`.
 4. Join two mini casings above and beside each other, and check the drawer stop with the mini
    drawer.
 
@@ -44,7 +49,7 @@ Printers differ by a tenth of a millimetre or two. Print the test kit first (abo
 
 | Setting | Value |
 | --- | --- |
-| Material | PLA, PLA+ or PETG (PETG springs last longer; PLA clicks more firmly) |
+| Material | PLA, PETG or ABS/ASA, chosen in the builder; see [Choosing a filament](materials.md) |
 | Nozzle and layers | 0.4 mm, 0.20 mm (0.16 mm for smoother sliding) |
 | Walls | 3 loops |
 | Infill | 15% |
@@ -82,16 +87,21 @@ pull it straight forward.
 | Top and sides | **Minimal**: a 3 mm cover. **Labelled**: one title, or one label per column (top) and per row (sides); letters pressed in or raised 0.6 mm; top labels flat or on a 45° strip. **Structural**: two channels for round rod or square bar, 3–12 mm |
 | Bottom | Base plate, or legs (straight, tapered or plinth, 10–120 mm, 15 mm by default) |
 | Pieces | As long as the bed allows, or one per column and row. Pieces always split between columns or rows |
+| Drawer pull | A lip along the top of the front, or a round finger notch |
+| Rail size | Standard (1.6 mm) or sturdy (2.0 mm, walls 0.4 mm thicker), under **3 Print → Advanced**. Modules with different rails do not fit together |
 
 ## Clearances
 
 Measured on the geometry, per side. The test `web/test/clearance.test.mjs` re-measures them for
-any setting.
+any setting. Each can be moved ±0.10 mm from the preset under **3 Print → Advanced**.
+
+| Joint | PLA | PETG | ABS / ASA |
+| --- | --- | --- | --- |
+| Rail in groove | 0.25 mm | 0.30 mm | 0.35 mm |
+| Drawer in casing (sides / above) | 0.35 / 0.50 mm | 0.40 / 0.55 mm | 0.45 / 0.60 mm |
 
 | Joint | Clearance |
 | --- | --- |
-| Rail in groove | 0.25 mm (adjustable 0.15–0.35) |
-| Drawer in casing | 0.35 mm sides, 0.50 mm top |
 | Divider in slot | 0.20 mm |
 | Lock bump in window | 0.40 mm front to back |
 | Rod in channel | 0.30 mm (square channels are true squares) |
@@ -101,8 +111,9 @@ any setting.
 
 | Symptom | Fix |
 | --- | --- |
-| Casing will not slide on | Raise the rail clearance one step; check for elephant's foot on the rail ends |
-| Casings wobble | Lower the rail clearance one step |
+| Casing will not slide on | Raise the rail clearance one step under Advanced; check for elephant's foot on the rail ends |
+| Casings wobble | Lower the rail clearance one step under Advanced |
+| Drawer rattles or sticks | Reprint the drawer test slices and adjust the drawer clearance under Advanced |
 | Lock does not click | The drawer of the casing above or to the right is in. Take it out while you join |
 | Drawer slides past the stop too easily | Print in PLA, or check the floor springs for stringing |
 | Drawer sticks | Clean stringing from the drawer's bottom chamfers; print at 0.16 mm layers |

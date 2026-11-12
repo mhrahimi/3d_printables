@@ -25,7 +25,8 @@ const VARIANTS = [
   { id: 'labeled_raised_tilt', style: 'labeled', look: { raised: true, tilt: true } },
   { id: 'structural', style: 'structural' }];
 const STYLES = VARIANTS.map((v) => v.id), VAR = Object.fromEntries(VARIANTS.map((v) => [v.id, v]));
-const sets = [{}, { unit_w: 80, unit_h: 50, depth: 160, fit_dovetail: 0.3 }, { unit_w: 100, unit_h: 36, depth: 90, fit_dovetail: 0.15 }];
+const sets = [{}, { unit_w: 80, unit_h: 50, depth: 160, fit_dovetail: 0.3 }, { unit_w: 100, unit_h: 36, depth: 90, fit_dovetail: 0.15 },
+  { dt_height: 2, dt_neck: 6, fit_dovetail: 0.45, fit_side: 0.55, fit_top: 0.7 }];
 for (const [si, over] of sets.entries()) {
   const p = { ...DEFAULTS, ...over }, U = p.unit_w, V = p.unit_h, g = p.gap, D = p.depth, tag = si ? JSON.stringify(over) : '';
   const first = si === 0;

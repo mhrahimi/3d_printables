@@ -18,7 +18,7 @@ export const DEFAULTS = {
   stop_ramp_deg: 30, stop_catch_deg: 50, stop_inside: 30, stop_recess: 0.2,
   rear_lip_w: 3, rear_lip_t: 1.6,
   fit_side: 0.35, fit_top: 0.5, d_wall: 1.2, d_floor: 1.2, d_front: 2, d_front_recess: 0.3,
-  d_chamfer: 5, d_edge: 0.4, d_scoop: 6, catch_len: 3, pull_depth: 6, pull_t: 1.8, pull_radius: 2,
+  d_chamfer: 5, d_edge: 0.4, d_scoop: 6, catch_len: 3, pull: 'lip', pull_depth: 6, pull_t: 1.8, pull_radius: 2,
   label: true, label_h: 14, label_margin: 6, label_depth: 0.6,
   divider_pitch: 30, divider_t: 1.2, divider_fit: 0.2, rib_t: 1, rib_d: 1.2,
   base_t: 3,
@@ -73,6 +73,13 @@ export function stopProfile(p) {
 }
 export const stopCatchZ = (p) =>
   stopProfile(p)[3][1] - p.stop_recess / Math.tan(rad(p.stop_catch_deg));
+/** Finger notch for p.pull === 'notch': radius and how far it reaches down from the rim. */
+export function notchSize(p, w = 1, h = 1) {
+  if (p.pull !== 'notch') return null;
+  const [X0, X1, Y0, Y1] = drawerBox(p, w, h);
+  const r = Math.min(11, 0.2 * (X1 - X0)), depth = Math.min(0.75 * r, 0.3 * (Y1 - Y0));
+  return { r, depth };
+}
 export function drawerBox(p, w, h) {
   const [xi0, xi1, yi0, yi1] = interior(p, w, h);
   const clear = Math.min(p.fit_side, p.fit_top, p.d_edge);
@@ -515,11 +522,15 @@ export function createKernel(M) {
     const zc = stopCatchZ(p) + (Zr - p.stop_inside);
     adds.push(prism('z', [[X0, Y0], [X0 + C + OV, Y0], [X0, Y0 + C + OV]], zc, zc + p.catch_len));
     adds.push(prism('z', [[X1, Y0], [X1 - C - OV, Y0], [X1, Y0 + C + OV]], zc, zc + p.catch_len));
-    const side = [[Y1, Zf + 0.6], [Y1, Zf - p.pull_depth], [Y1 - p.pull_t, Zf - p.pull_depth],
-      [Y1 - p.pull_t - p.pull_depth, Zf], [Y1 - p.pull_t - p.pull_depth, Zf + 0.6]];
-    const r = p.pull_radius, zf = Zf - p.pull_depth;
-    const plan = [[X0, Zf + 1], ...arc(X0 + r, zf + r, r, 180, 270), ...arc(X1 - r, zf + r, r, 270, 360), [X1, Zf + 1]];
-    adds.push(isect(prism('x', side, X0, X1), prism('y', plan, Y0 - 1, Y1 + 1)));
+    // pull: a lip along the top of the front ('lip'), or a round finger notch cut into it ('notch')
+    const notch = notchSize(p, w, h);
+    if (!notch) {
+      const side = [[Y1, Zf + 0.6], [Y1, Zf - p.pull_depth], [Y1 - p.pull_t, Zf - p.pull_depth],
+        [Y1 - p.pull_t - p.pull_depth, Zf], [Y1 - p.pull_t - p.pull_depth, Zf + 0.6]];
+      const r = p.pull_radius, zf = Zf - p.pull_depth;
+      const plan = [[X0, Zf + 1], ...arc(X0 + r, zf + r, r, 180, 270), ...arc(X1 - r, zf + r, r, 270, 360), [X1, Zf + 1]];
+      adds.push(isect(prism('x', side, X0, X1), prism('y', plan, Y0 - 1, Y1 + 1)));
+    }
     const sw = p.divider_t + 2 * p.divider_fit;
     for (const xc of opt.slots || []) {
       for (const xa of [xc - sw / 2 - p.rib_t, xc + sw / 2]) {
@@ -536,13 +547,19 @@ export function createKernel(M) {
 
     const cuts = [];
     if (p.label) {
-      const lo = Y0 + C + 1.5, hi = Y1 - p.pull_t - p.pull_depth - 1.5;
+      const lo = Y0 + C + 1.5, hi = (notch ? Y1 - notch.depth : Y1 - p.pull_t - p.pull_depth) - 1.5;
       const lh = Math.min(p.label_h, hi - lo);
       if (lh >= 6 && X1 - X0 - 2 * p.label_margin > 10) {
         const ym = (lo + hi) / 2, ya = ym - lh / 2, yb = ym + lh / 2, dl = p.label_depth;
         cuts.push(prism('x', [[ya, Zf - 1], [ya, Zf + dl], [yb - dl, Zf + dl], [yb, Zf], [yb, Zf - 1]],
           X0 + p.label_margin, X1 - p.label_margin));
       }
+    }
+    if (notch) {
+      // circle centred above the rim; it also trims the front ends of walls and slot ribs behind it
+      const xc = (X0 + X1) / 2, yc = Y1 + notch.r - notch.depth, pts = [];
+      for (let i = 0; i < 48; i++) { const a = (i / 48) * 2 * Math.PI; pts.push([xc + notch.r * Math.cos(a), yc + notch.r * Math.sin(a)]); }
+      cuts.push(prism('z', pts, Zf - 1, Zf + p.d_front + 8));
     }
     const k = p.d_edge;
     cuts.push(prism('x', [[Y0 - 1, Zf - 1], [Y0 + k, Zf - 1], [Y0 + k, Zf], [Y0, Zf + k], [Y0 - 1, Zf + k]], X0 - 1, X1 + 1));
@@ -767,6 +784,31 @@ export function createKernel(M) {
     return fuse(body, [lockBump(q, 'bottom', span[0] + 0.3, span[0] + 0.3 + q.lock_bump_w)]);
   }
 
+  /**
+   * Drawer-clearance test: a 16 mm slice of a 1x1 casing's drawer opening (a plain ring), and
+   * 12 mm slices of a drawer's outer shape at a chosen gap per side. Slide each slice into the
+   * ring: `marks` V-notches on top tell them apart. Both print standing on a cut face.
+   */
+  function couponDrawerCaseBuild(p, depth = 16) {
+    const [xi0, xi1, yi0, yi1] = interior(p, 1, 1), t = 2;
+    const ring = cut(box(xi0 - t, xi1 + t, yi0 - t, yi1 + t, 0, depth), [box(xi0, xi1, yi0, yi1, -1, depth + 1)]);
+    return cut(ring, frontOuterChamfers(p, xi0 - t, xi1 + t, yi0 - t, yi1 + t));
+  }
+  function couponDrawerBuild(p, gap, marks = 0, depth = 12) {
+    const q = { ...p, fit_side: gap, fit_top: p.fit_top + (gap - p.fit_side) };
+    const [X0, X1, Y0, Y1] = drawerBox(q, 1, 1);
+    const C = q.d_chamfer, t = q.d_wall, tf = q.d_floor, ci = C + t * SQ2;
+    const outer = prism('z', [[X0, Y0 + C], [X0 + C, Y0], [X1 - C, Y0], [X1, Y0 + C], [X1, Y1], [X0, Y1]], 0, depth);
+    const inner = prism('z', [[X0 + t, Y0 + ci - t], [X0 + ci - tf, Y0 + tf], [X1 - ci + tf, Y0 + tf],
+      [X1 - t, Y0 + ci - t], [X1 - t, Y1 + 1], [X0 + t, Y1 + 1]], -1, depth + 1);
+    const cuts = [inner];
+    for (let k = 0; k < marks; k++) {
+      const zc = depth - 3 - 3 * k;
+      cuts.push(prism('x', [[Y1 + 1, zc - 2.2], [Y1 - 1.2, zc], [Y1 + 1, zc + 2.2]], X1 - t - 1, X1 + 1));
+    }
+    return cut(outer, cuts);
+  }
+
   // ---------------------------------------------------------------- frames
   const toUse = (m) => m.mirror([0, 0, 1]);
   const ROT = { case: [180, 0, 0], coupon: [180, 0, 0], drawer: [90, 0, 0], base: [90, 0, 0], divider: [0, 90, 0] };
@@ -788,6 +830,7 @@ export function createKernel(M) {
   return {
     case: scoped(caseBuild), drawer: scoped(drawerBuild), divider: scoped(dividerBuild),
     base: scoped(baseBuild), couponRail: scoped(couponRailBuild), couponGroove: scoped(couponGrooveBuild),
+    couponDrawerCase: scoped(couponDrawerCaseBuild), couponDrawer: scoped(couponDrawerBuild),
     panel: scoped(panelBuild), plug: scoped(plugBuild),
     toUse, printPose, components,
     box: scoped(box),

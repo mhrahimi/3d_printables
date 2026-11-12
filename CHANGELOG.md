@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0 — 2026-11-12
+
+- Filament choice (PLA, PETG, ABS/ASA) sets the starting rail and drawer clearances; a new
+  [filament page](docs/materials.md) explains the choice.
+- Clearances are now fine-tuned as offsets from the preset (±0.10 mm) under *Advanced*.
+- Test kit: groove pieces centred on the preset, plus a drawer opening and three drawer slices.
+- Sturdy rails option (2.0 mm high, 6 mm neck), in the builder and `cad/build.py --rails sturdy`.
+- Finger-notch drawer pull as an alternative to the lip.
+- New tests: whole walls checked part against part (drawers closed and at their stops), and
+  every insertion path swept to map contact.
+- [Where the numbers come from](docs/sources.md): the research behind the design choices.
+
 ## 1.0.0 — 2026-11-12
 
 First public release.

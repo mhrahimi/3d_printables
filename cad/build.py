@@ -29,7 +29,6 @@ from drawer_system.geom import translate
 
 DEFAULT_SIZES = ["1x1", "2x1", "3x1", "4x1", "1x2", "2x2", "3x2", "4x2"]
 DENSITY = {"PLA": 1.24, "PETG": 1.27}
-FITS = [0.15, 0.20, 0.25, 0.30, 0.35]
 
 
 def parse_sizes(s):
@@ -81,6 +80,15 @@ def example_wall(p: Params):
     return asm, layout
 
 
+# Starting clearances per side (mm) for each filament, and the two rail sizes (see docs/materials.md).
+MATERIALS = {
+    "pla": dict(rail=0.25, side=0.35, top=0.50),
+    "petg": dict(rail=0.30, side=0.40, top=0.55),
+    "abs": dict(rail=0.35, side=0.45, top=0.60),
+}
+RAILS = {"standard": dict(dt_height=1.6, dt_neck=5.0), "sturdy": dict(dt_height=2.0, dt_neck=6.0)}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sizes", default=",".join(DEFAULT_SIZES))
@@ -90,9 +98,15 @@ def main(argv=None):
     ap.add_argument("--no-test", action="store_true", help="skip the fit-test pieces")
     ap.add_argument("--no-assembly", action="store_true")
     ap.add_argument("--list-params", action="store_true")
+    ap.add_argument("--material", choices=sorted(MATERIALS), default="pla",
+                    help="starting clearances: pla, petg or abs (abs also covers asa); --set overrides them")
+    ap.add_argument("--rails", choices=sorted(RAILS), default="standard", help="standard (1.6 mm) or sturdy (2.0 mm) rails")
     a = ap.parse_args(argv)
 
-    p = Params().override(a.set)
+    mat = MATERIALS[a.material]
+    presets = [f"fit_dovetail={mat['rail']}", f"fit_side={mat['side']}", f"fit_top={mat['top']}"]
+    presets += [f"{k}={v}" for k, v in RAILS[a.rails].items()]
+    p = Params().override(presets + a.set)
     if a.list_params:
         for k, v in p.as_dict().items():
             print(f"{k:22s} {v}")
@@ -122,7 +136,8 @@ def main(argv=None):
     if not a.no_test:
         print("Fit-test pieces")
         export(to_use(parts.coupon_rail(p)), "coupon_rail", "test_rail", a.out, rows, step)
-        for k, f in enumerate(FITS, start=1):
+        # groove pieces centred on the material preset: 3 notches = preset, 0.05 mm a notch
+        for k, f in enumerate([round(p.fit_dovetail + d, 2) for d in (-0.10, -0.05, 0.0, 0.05, 0.10)], start=1):
             export(to_use(parts.coupon_groove(p, f, marks=k)), "coupon_groove",
                    f"test_groove_{f:.2f}mm_{k}notch", a.out, rows, step)
         export(to_use(parts.case(p, 1, 1, depth=48.0)), "case", "test_mini_case_1x1", a.out, rows, step)

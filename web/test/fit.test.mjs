@@ -12,7 +12,8 @@ const mv = (m, x, y, z) => m.translate([x, y, z]);
 const out = process.env.PRINT_DIR ? `${process.env.PRINT_DIR}/js_print` : `${(await import('node:os')).tmpdir()}/drawer-wall-js_print`; fs.rmSync(out, { recursive: true, force: true }); fs.mkdirSync(out, { recursive: true });
 const save = (name, kind, m) => { const pm = Kn.printMesh(kind, Kn.useMesh(cleanMesh(m))); const d = Kn.meshDefects(pm); check(name + ' print mesh closed', !(d.open || d.doubled || d.zero), JSON.stringify(d)); fs.writeFileSync(`${out}/${name}.stl`, stlBytes(pm)); };
 
-for (const over of [{}, { unit_w: 80, unit_h: 50, depth: 160, fit_dovetail: 0.3 }, { unit_w: 100, unit_h: 36, depth: 90, fit_dovetail: 0.15 }]) {
+for (const over of [{}, { unit_w: 80, unit_h: 50, depth: 160, fit_dovetail: 0.3 }, { unit_w: 100, unit_h: 36, depth: 90, fit_dovetail: 0.15 },
+  { dt_height: 2, dt_neck: 6, fit_dovetail: 0.45, fit_side: 0.55, fit_top: 0.7, pull: 'notch' }, { fit_side: 0.25, fit_top: 0.4, pull: 'notch' }]) {
   const p = { ...DEFAULTS, ...over }, U = p.unit_w, Vh = p.unit_h, tag = JSON.stringify(over);
   const mx = Kn.maxUnits(p);
   const c11 = K.case(p, 1, 1);
@@ -62,7 +63,17 @@ for (const over of [{}, { unit_w: 80, unit_h: 50, depth: 160, fit_dovetail: 0.3 
   }
   if (!Object.keys(over).length) { for (const h of [1, 2, 3]) { const d = K.divider(p, h); save(`divider_h${h}`, 'divider', d); d.delete(); }
     const b = K.base(p, 4); save('base_4', 'base', b); b.delete(); const r = K.couponRail(p); save('test_rail', 'coupon', r); r.delete();
-    const g = K.couponGroove(p, 0.35, 5); save('test_groove_035', 'coupon', g); g.delete(); }
+    const g = K.couponGroove(p, 0.35, 5); save('test_groove_035', 'coupon', g); g.delete();
+    const ring = K.couponDrawerCase(p); save('test_drawer_opening', 'case', ring);
+    for (const [i, gap] of [0.25, 0.35, 0.45].entries()) {
+      const s = K.couponDrawer(p, gap, i + 1); save(`test_drawer_slice_${i + 1}`, 'case', s);
+      const free = mv(s, 0, 0, 2), xs = mv(free, gap - 0.02, 0, 0), xt = mv(free, gap + 0.02, 0, 0);
+      check(`drawer test slice ${gap}: fits the opening with ${gap} mm a side`, iv(free, ring) < 1e-4 && iv(xs, ring) < 1e-4 && iv(xt, ring) > 1e-4);
+      [s, free, xs, xt].forEach((q) => q.delete());
+    }
+    ring.delete();
+    const pn = { ...p, pull: 'notch' };
+    for (const [w, h] of [[1, 1], [2, 2]]) { const d = K.drawer(pn, w, h, { wallsX: Kn.acrossCenters(pn, w, h, 2).centers }); save(`drawer_notch_${w}x${h}`, 'drawer', d); d.delete(); } }
   c11.delete();
 }
 console.log(`${n} fit checks, ${bad} failed`);

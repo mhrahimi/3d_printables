@@ -8,7 +8,14 @@ const CDN = {
 };
 // absolute, so the link still works in the README inside a downloaded ZIP
 const GUIDE_URL = new URL('__GUIDE_URL__', location.href).href;
-const DENSITY = { PLA: 1.24, PETG: 1.27 };
+/** Starting clearances per side (mm) and density per filament; see docs/materials. */
+const MATERIALS = {
+  PLA: { label: 'PLA / PLA+', rail: 0.25, side: 0.35, top: 0.5, rho: 1.24 },
+  PETG: { label: 'PETG', rail: 0.30, side: 0.40, top: 0.55, rho: 1.27 },
+  ABS: { label: 'ABS / ASA', rail: 0.35, side: 0.45, top: 0.6, rho: 1.05 },
+};
+const OFFSETS = [-0.1, -0.05, 0, 0.05, 0.1];
+const RAILS = { standard: { dt_height: 1.6, dt_neck: 5 }, sturdy: { dt_height: 2.0, dt_neck: 6 } };
 const CASE_COLORS = [['Deep blue', '#12325c'], ['Graphite', '#30343b'], ['Grey', '#aeb6c2'], ['White', '#eef2f5'], ['Orange', '#e8742a']];
 const DRAWER_COLORS = [['Cyan', '#5ae8d3'], ['Orange', '#f08a24'], ['Yellow', '#f2c230'], ['White', '#f1f4f6'], ['Clear', 'clear']];
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
@@ -39,7 +46,7 @@ const EXAMPLE = () => ({
     topLabel: 'Workshop', leftLabel: '', rightLabel: '', colLabels: [] },
   testKit: true, showDims: true,
   caseColor: CASE_COLORS[0][1], drawerColor: DRAWER_COLORS[0][1],
-  unit_w: 60, unit_h: 40, depth: 130, fit: 0.25, material: 'PLA',
+  unit_w: 60, unit_h: 40, depth: 130, material: 'PLA', railOffset: 0, drawerOffset: 0, rails: 'standard', pull: 'lip',
 });
 
 let state = EXAMPLE();
@@ -60,7 +67,10 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 // ---------------------------------------------------------------- parameters and layout
 function params() {
-  return { ...Kn.DEFAULTS, unit_w: state.unit_w, unit_h: state.unit_h, depth: state.depth, fit_dovetail: state.fit };
+  const mat = MATERIALS[state.material];
+  return { ...Kn.DEFAULTS, ...RAILS[state.rails], unit_w: state.unit_w, unit_h: state.unit_h, depth: state.depth,
+    fit_dovetail: +(mat.rail + state.railOffset).toFixed(3), fit_side: +(mat.side + state.drawerOffset).toFixed(3),
+    fit_top: +(mat.top + state.drawerOffset).toFixed(3), pull: state.pull };
 }
 
 /** Clamp the state to what the current base size and width allow. */
@@ -68,8 +78,13 @@ function normalize() {
   const s = state;
   s.cols = clamp(Math.round(s.cols) || 1, ...LIMITS.cols);
   for (const k of ['unit_w', 'unit_h', 'depth']) s[k] = clamp(Number(s[k]) || Kn.DEFAULTS[k], ...LIMITS[k]);
-  if (![0.15, 0.2, 0.25, 0.3, 0.35].includes(s.fit)) s.fit = 0.25;
-  if (!DENSITY[s.material]) s.material = 'PLA';
+  if (!MATERIALS[s.material]) s.material = 'PLA';
+  // older saves stored an absolute rail clearance: turn it into an offset from the PLA preset
+  if (typeof s.fit === 'number') { s.railOffset = s.fit - MATERIALS.PLA.rail; delete s.fit; }
+  const near = (v) => OFFSETS.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a), 0);
+  s.railOffset = near(Number(s.railOffset) || 0); s.drawerOffset = near(Number(s.drawerOffset) || 0);
+  if (!RAILS[s.rails]) s.rails = 'standard';
+  if (s.pull !== 'notch') s.pull = 'lip';
   if (s.style !== 'removable') s.style = 'fixed';
   s.showDims = s.showDims !== false;
   const f = s.finish = { ...EXAMPLE().finish, ...(s.finish || {}) };
@@ -252,7 +267,7 @@ function finishLayout(p, H) {
 let K = null;                       // kernel bound to the WASM module
 let cache = new Map(), cacheParams = '';
 function getPart(p, key, kind, build, pose = kind) {
-  const sig = JSON.stringify([p.unit_w, p.unit_h, p.depth, p.fit_dovetail]);
+  const sig = JSON.stringify(p);
   if (sig !== cacheParams) { cache = new Map(); cacheParams = sig; for (const g of geoCache.values()) g.dispose(); geoCache.clear(); }
   let e = cache.get(key);
   if (!e) {
@@ -271,11 +286,18 @@ function buildDef(p, def) {
   if (def.kind === 'plug') return getPart(p, def.key, 'plug', () => K.plug(p, def.rod));
   return getPart(p, def.key, 'panel', () => K.panel(p, def.opt), def.pose);
 }
+/** Test pieces centred on the filament's presets: 3 notches = preset rail clearance, 2 = preset drawer gap. */
+const kitRails = (m) => OFFSETS.map((o, i) => ({ fit: +(m.rail + o).toFixed(2), notches: i + 1, offset: o }));
+const kitDrawers = (m) => [-0.1, 0, 0.1].map((o, i) => ({ gap: +(m.side + o).toFixed(2), notches: i + 1, offset: o }));
 function testKit(p) {
-  const q = { ...p, depth: 48 };
+  const q = { ...p, depth: 48 }, mat = MATERIALS[state.material];
   const out = [['test_rail', getPart(p, 'test_rail', 'coupon', () => K.couponRail(p)), 1]];
-  [0.15, 0.2, 0.25, 0.3, 0.35].forEach((f, i) => out.push([`test_groove_${f.toFixed(2)}mm_${i + 1}-notch`,
-    getPart(p, `test_groove_${i}`, 'coupon', () => K.couponGroove(p, f, i + 1)), 1]));
+  for (const g of kitRails(mat)) out.push([`test_groove_${g.fit.toFixed(2)}mm_${g.notches}-notch`,
+    getPart(p, `test_groove_${g.notches}`, 'coupon', () => K.couponGroove(p, g.fit, g.notches)), 1]);
+  const pd = { ...p, fit_side: mat.side, fit_top: mat.top };
+  out.push(['test_drawer_opening', getPart(p, 'test_drawer_ring', 'case', () => K.couponDrawerCase(pd)), 1]);
+  for (const d of kitDrawers(mat)) out.push([`test_drawer_slice_${d.gap.toFixed(2)}mm_${d.notches}-notch`,
+    getPart(p, `test_drawer_slice_${d.notches}`, 'case', () => K.couponDrawer(pd, d.gap, d.notches)), 1]);
   out.push(['test_mini_casing', getPart(p, 'test_mini_case', 'case', () => K.case(q, 1, 1)), 2]);
   out.push(['test_mini_drawer', getPart(p, 'test_mini_drawer', 'drawer', () => K.drawer(q, 1, 1, {})), 1]);
   return out;
@@ -288,7 +310,7 @@ function compute() {
   const errors = Kn.check(p);
   if (errors.length) return { p, mx, errors };
   const lay = layout(p, mx);
-  const rho = DENSITY[state.material];
+  const rho = MATERIALS[state.material].rho;
   let grams = 0, pieces = 0, gCase = 0, gDrawer = 0;
   for (const def of lay.parts) {
     const e = buildDef(p, def);
@@ -684,7 +706,18 @@ function renderControls(m) {
   $('case-colors').innerHTML = sw(CASE_COLORS, state.caseColor, 'case');
   $('drawer-colors').innerHTML = sw(DRAWER_COLORS, state.drawerColor, 'drawer');
   for (const k of ['unit_w', 'unit_h', 'depth']) if (document.activeElement !== $(`adv-${k}`)) $(`adv-${k}`).value = state[k];
-  $('adv-fit').value = String(state.fit); $('adv-material').value = state.material;
+  const mat = MATERIALS[state.material], p = m.p, sgn = (o) => (o > 0 ? '+' : o < 0 ? '−' : '±') + Math.abs(o).toFixed(2);
+  $('adv-material').value = state.material;
+  $('material-hint').textContent = `Sets the starting clearances per side: rails ${mat.rail.toFixed(2)} mm, drawers ${mat.side.toFixed(2)} mm. Also used for the weight estimate.`;
+  $('kit-hint').textContent = `About 100 g. A rail with five groove pieces and a drawer opening with three drawer slices. The piece that fits best tells you how to adjust the clearances under Advanced.`;
+  const opts = (sel, base, label) => { sel.innerHTML = OFFSETS.map((o) => `<option value="${o}">${o === 0 ? `Preset, ${base.toFixed(2)} mm` : `${sgn(o)} → ${(base + o).toFixed(2)} mm`}${label(o)}</option>`).join(''); };
+  opts($('adv-railOffset'), mat.rail, (o) => ` (${Math.round(o / 0.05) + 3}-notch piece)`);
+  opts($('adv-drawerOffset'), mat.side, (o) => (Math.abs(o) === 0.1 || o === 0 ? ` (${Math.round(o / 0.1) + 2}-notch slice)` : ''));
+  $('adv-railOffset').value = String(state.railOffset); $('adv-drawerOffset').value = String(state.drawerOffset);
+  $('rail-fit-hint').textContent = `These files use ${p.fit_dovetail.toFixed(2)} mm per side between rail and groove.`;
+  $('drawer-fit-hint').textContent = `These files use ${p.fit_side.toFixed(2)} mm per side and ${p.fit_top.toFixed(2)} mm above each drawer.`;
+  for (const b of document.querySelectorAll('[data-rails]')) b.setAttribute('aria-pressed', String(b.dataset.rails === state.rails));
+  for (const b of document.querySelectorAll('[data-pull]')) b.setAttribute('aria-pressed', String(b.dataset.pull === state.pull));
   $('adv-note').textContent = `Largest module on a 256 mm printer at this size: ${mx.w} wide, ${Math.min(3, mx.h)} high.`;
 }
 
@@ -735,7 +768,7 @@ function renderParts(m) {
   $('rods-wrap').hidden = !m.rods.length;
   $('rods-body').innerHTML = m.rods.map((r) => `<tr><td>${r.rod.label} (${r.where})</td><td class="num qty">${r.qty}</td><td class="num">${fmt(r.len)}</td></tr>`).join('');
   const cl = state.drawerColor === 'clear' ? 'clear' : 'drawer colour';
-  $('by-color').textContent = `Casings, panels and legs: ${kg(m.gCase)}. Drawers and dividers (${cl}): ${kg(m.gDrawer)}. Weights assume solid walls and ${DENSITY[state.material]} g/cm³; allow about 10% extra.`;
+  $('by-color').textContent = `Casings, panels and legs: ${kg(m.gCase)}. Drawers and dividers (${cl}): ${kg(m.gDrawer)}. Weights assume solid walls and ${MATERIALS[state.material].rho} g/cm³; allow about 10% extra.`;
   document.documentElement.style.setProperty('--case-color', state.caseColor);
   document.documentElement.style.setProperty('--drawer-color', state.drawerColor === 'clear' ? '#dff3f7' : state.drawerColor);
 }
@@ -841,7 +874,10 @@ function bind() {
     state[b.dataset.color === 'case' ? 'caseColor' : 'drawerColor'] = b.dataset.v; update();
   });
   for (const k of ['unit_w', 'unit_h', 'depth']) $(`adv-${k}`).onchange = (e) => { state[k] = Number(e.target.value); update(); e.target.value = state[k]; };
-  $('adv-fit').onchange = (e) => { state.fit = Number(e.target.value); update(); };
+  $('adv-railOffset').onchange = (e) => { state.railOffset = Number(e.target.value); update(); };
+  $('adv-drawerOffset').onchange = (e) => { state.drawerOffset = Number(e.target.value); update(); };
+  for (const b of document.querySelectorAll('[data-rails]')) b.onclick = () => { state.rails = b.dataset.rails; update(); };
+  for (const b of document.querySelectorAll('[data-pull]')) b.onclick = () => { state.pull = b.dataset.pull; update(); };
   $('adv-material').onchange = (e) => { state.material = e.target.value; update(); };
   $('btn-reset').onclick = () => { undoState = structuredClone(state); state = EXAMPLE(); update(); if (view3d) view3d.fit(); showTab('layout'); undoable('Back to the example wall.'); };
   const tabs = [...document.querySelectorAll('[role="tab"]')], names = tabs.map((t) => t.id.slice(4));
@@ -897,15 +933,18 @@ ${kit ? '  test_kit/  print this first (see below).\n' : ''}  parts.csv  the sam
 PRINT SETTINGS
   The STL files are already in print orientation. Do not rotate or scale them.
   0.4 mm nozzle, 0.20 mm layers, 3 wall loops, 15% infill, no supports.
-  Elephant's foot compensation 0.15 mm. PLA, PLA+ or PETG.
+  Elephant's foot compensation 0.15 mm. Filament: ${MATERIALS[state.material].label}${state.material === 'ABS' ? ' (enclosure and a brim)' : ''}.
   Casings stand on their front face. Drawers print floor-down. Plates print flat.
 ${kit ? `
-TEST KIT (print first, about 85 g)
-  Slide each test_groove piece onto test_rail. The V-notches give the rail
-  clearance per side: 1 = 0.15, 2 = 0.20, 3 = 0.25, 4 = 0.30, 5 = 0.35 mm.
+TEST KIT (print first, about 100 g)
+  Rails: slide each test_groove piece onto test_rail. 3 V-notches is the ${MATERIALS[state.material].label}
+  preset (${MATERIALS[state.material].rail.toFixed(2)} mm per side); each notch more or fewer is 0.05 mm looser or tighter.
   Pick the tightest piece that slides the full length by hand without wobble.
-  These files were made with ${p.fit_dovetail.toFixed(2)} mm. If you picked another value, set it under
-  "Advanced" in the builder and download again.
+  Drawers: slide each test_drawer_slice into test_drawer_opening. 2 notches is the
+  preset (${MATERIALS[state.material].side.toFixed(2)} mm per side); 1 notch is 0.10 mm tighter, 3 notches 0.10 mm looser.
+  Pick the one that slides freely without rattling.
+  These files use ${p.fit_dovetail.toFixed(2)} mm (rails) and ${p.fit_side.toFixed(2)} mm (drawers). If a different piece
+  fitted best, adjust the clearance under 3 Print > Advanced in the builder and download again.
   Join the two mini casings and try the mini drawer to feel both clicks.
 ` : ''}
 FINISH

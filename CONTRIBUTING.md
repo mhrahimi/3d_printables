@@ -13,6 +13,9 @@ material and rail clearance you used, and what fitted or did not.
    cd web && npm ci && npm test && npm run build
    ```
 
+   `npm test` covers generated parts, fit, add-ons, whole walls (`wall.test.mjs`), insertion
+   paths (`slide.test.mjs`) and clearances for standard and sturdy rails.
+
 3. If you touched shared geometry, check parity with CadQuery:
 
    ```bash

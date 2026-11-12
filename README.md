@@ -8,7 +8,8 @@ without supports on a 256 mm bed.
 ![The drawer wall builder](docs/images/builder.png)
 
 **[Open the builder](https://mhrahimi.github.io/3d_printables/)** ·
-**[Build guide](docs/build-guide.md)** · [Reference models](models/README.md) · [Changelog](CHANGELOG.md)
+**[Build guide](docs/build-guide.md)** · [Choosing a filament](docs/materials.md) ·
+[Where the numbers come from](docs/sources.md) · [Reference models](models/README.md) · [Changelog](CHANGELOG.md)
 
 ## What it does
 
@@ -19,6 +20,9 @@ without supports on a 256 mm bed.
   take one title or one label per column and row; letters are pressed in or raised, and top
   labels can sit on a tilted strip. Structural panels take round rod or square bar of any size
   from 3 to 12 mm. The bottom is a base plate or a base with legs.
+- **Fit your printer.** Choose PLA, PETG or ABS/ASA for starting clearances; a test kit with
+  rail and drawer pieces tells you how to fine-tune them. Standard or sturdy rails, lip or
+  finger-notch pulls.
 - **Print it.** The download is a ZIP with one STL per part in print orientation (quantity in
   the file name), the assembled wall, a parts list (CSV), print notes and the rod cut list.
   The geometry is built in the browser. Nothing is uploaded.
@@ -29,9 +33,9 @@ without supports on a 256 mm bed.
 
 ## Print it
 
-1. **Print the fit test kit first** (about 85 g, included in every download). The groove piece
-   that slides the full length of the test rail without wobble gives your clearance. Set it
-   under *3 Print* if it is not 0.25 mm.
+1. **Choose your filament and print the fit test kit first** (about 100 g, included in every
+   download). The groove piece and drawer slice that fit best tell you whether to adjust the
+   clearances under *3 Print → Advanced*.
 2. **Print the parts** with a 0.4 mm nozzle, 0.20 mm layers, 3 walls, 15% infill and no
    supports. Do not rotate or scale the files.
 3. **Assemble** from the bottom up and left to right: casings slide in from the front until they
@@ -57,7 +61,7 @@ The builder (Node 20 or later):
 ```bash
 cd web
 npm ci
-npm test          # 1,100+ generated parts, fit, add-ons, clearances
+npm test          # 1,700+ generated parts, fit, add-ons, whole walls, slide paths, clearances
 npm run build     # writes ../index.html
 ```
 
@@ -67,6 +71,7 @@ The CAD source (Python 3.10 or later):
 cd cad
 pip install -r requirements.txt
 python build.py --out ../models                  # every STL and STEP, plus reports
+python build.py --material petg --rails sturdy   # presets for another filament, sturdy rails
 python build.py --set fit_dovetail=0.30          # change any parameter, never scale STLs
 python -m drawer_system.validate                 # 54 fit and motion checks
 ```

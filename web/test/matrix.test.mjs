@@ -4,7 +4,10 @@ import * as Kn from '../kernel.js';
 const { DEFAULTS, createKernel, cleanMesh, meshDefects } = Kn;
 const M = await Module(); M.setup(); const K = createKernel(M);
 const sets = [{}, { unit_w: 80, unit_h: 50, depth: 160, fit_dovetail: 0.3 }, { unit_w: 60, unit_h: 32, depth: 80, fit_dovetail: 0.15 },
-  { unit_w: 100, unit_h: 60, depth: 200, fit_dovetail: 0.35 }, { unit_w: 72.5, unit_h: 45, depth: 115 }, { unit_w: 59, unit_h: 36, depth: 100, fit_dovetail: 0.2 }];
+  { unit_w: 100, unit_h: 60, depth: 200, fit_dovetail: 0.35 }, { unit_w: 72.5, unit_h: 45, depth: 115 }, { unit_w: 59, unit_h: 36, depth: 100, fit_dovetail: 0.2 },
+  // sturdy rails, ABS clearances at their loosest, finger-notch pulls; PLA at its tightest
+  { dt_height: 2, dt_neck: 6 }, { dt_height: 2, dt_neck: 6, fit_dovetail: 0.45, fit_side: 0.55, fit_top: 0.7, pull: 'notch' },
+  { fit_dovetail: 0.15, fit_side: 0.25, fit_top: 0.4, pull: 'notch' }];
 let n = 0, bad = 0, tMax = 0;
 const test = (name, m) => {
   const t = performance.now(); const c = cleanMesh(m); tMax = Math.max(tMax, performance.now() - t);

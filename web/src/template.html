@@ -188,6 +188,7 @@ details > summary .ic { transition: transform 0.15s; }
 details[open] > summary .ic { transform: rotate(90deg); }
 .adv-grid { padding-top: var(--s2); }
 .field-stack { display: grid; gap: var(--s3); }
+.small-link { font-size: var(--fs--1); font-weight: 600; min-height: var(--hit); display: inline-flex; align-items: center; }
 .unit-input { display: inline-flex; align-items: center; gap: var(--s2); }
 .unit-input input { width: 96px; }
 .label-grid { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: var(--s2) var(--s3); align-items: center; }
@@ -363,6 +364,10 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
           <button type="button" data-style="removable" data-fid="style-removable" aria-pressed="false">Removable dividers</button>
         </div>
         <p id="style-note" class="hint"></p>
+        <div class="field"><span class="field-label" id="l-pull">Drawer pull</span>
+          <div class="seg compact" role="group" aria-labelledby="l-pull">
+            <button type="button" data-pull="lip" data-fid="pull-lip">Lip</button><button type="button" data-pull="notch" data-fid="pull-notch">Finger notch</button>
+          </div></div>
       </div>
       <button type="button" class="btn next" data-goto="finish">Next: finish<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></button>
     </div>
@@ -436,13 +441,14 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
 
     <div class="tabpanel" role="tabpanel" id="panel-print" aria-labelledby="tab-print" tabindex="0" hidden>
       <div class="section">
+        <div class="section-head"><h2>Filament</h2><a class="small-link" href="__DOCS_URL__materials.html" target="_blank" rel="noopener">Which one?</a></div>
+        <label class="field" for="adv-material"><span class="visually-hidden">Filament</span>
+          <select id="adv-material" class="text"><option value="PLA">PLA / PLA+</option><option value="PETG">PETG</option><option value="ABS">ABS / ASA</option></select>
+          <span class="hint" id="material-hint"></span></label>
+      </div>
+      <div class="section">
         <h2>Before the first print</h2>
-        <label class="check" for="opt-kit"><input type="checkbox" id="opt-kit"><span>Include the fit test kit<small>About 85 g of small pieces. Print them first to find the rail clearance your printer needs.</small></span></label>
-        <label class="field" for="adv-fit"><span class="field-label">Rail clearance per side</span>
-          <select id="adv-fit" class="text"><option value="0.15">0.15 mm (tight)</option><option value="0.2">0.20 mm</option><option value="0.25">0.25 mm (standard)</option><option value="0.3">0.30 mm</option><option value="0.35">0.35 mm (loose)</option></select>
-          <span class="hint">Use the groove piece from the test kit that slides the full length without wobble.</span></label>
-        <label class="field" for="adv-material"><span class="field-label">Filament for the weight estimate</span>
-          <select id="adv-material" class="text"><option value="PLA">PLA</option><option value="PETG">PETG</option></select></label>
+        <label class="check" for="opt-kit"><input type="checkbox" id="opt-kit"><span>Include the fit test kit<small id="kit-hint"></small></span></label>
       </div>
       <div class="section">
         <h2>Preview colours</h2>
@@ -451,14 +457,24 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
       </div>
       <div class="section">
         <details id="advanced">
-          <summary><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>Unit size (changes every part)</summary>
+          <summary><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>Advanced: fit, rails and unit size</summary>
+          <div class="field-stack adv-grid">
+            <label class="field" for="adv-railOffset"><span class="field-label">Rail clearance: adjust from the preset</span>
+              <select id="adv-railOffset" class="text"></select><span class="hint" id="rail-fit-hint"></span></label>
+            <label class="field" for="adv-drawerOffset"><span class="field-label">Drawer clearance: adjust from the preset</span>
+              <select id="adv-drawerOffset" class="text"></select><span class="hint" id="drawer-fit-hint"></span></label>
+            <div class="field"><span class="field-label" id="l-rails">Rail size</span>
+              <div class="seg" role="group" aria-labelledby="l-rails">
+                <button type="button" data-rails="standard" data-fid="rails-standard">Standard, 1.6 mm</button><button type="button" data-rails="sturdy" data-fid="rails-sturdy">Sturdy, 2.0 mm</button>
+              </div><span class="hint">Sturdy rails are taller and wider, and the walls 0.4 mm thicker. Modules with different rails do not fit together.</span></div>
+          </div>
           <div class="pair adv-grid">
             <label class="field" for="adv-unit_w"><span class="field-label">Unit width (mm)</span><input type="number" class="text" id="adv-unit_w" min="60" max="120" step="1" inputmode="decimal"></label>
             <label class="field" for="adv-unit_h"><span class="field-label">Unit height (mm)</span><input type="number" class="text" id="adv-unit_h" min="32" max="80" step="1" inputmode="decimal"></label>
             <label class="field" for="adv-depth"><span class="field-label">Depth (mm)</span><input type="number" class="text" id="adv-depth" min="80" max="220" step="5" inputmode="decimal"></label>
           </div>
           <p id="adv-note" class="hint" style="padding-top: var(--s3)"></p>
-          <p class="hint">Modules only lock together if they share the unit size and depth. Clearance can differ between batches.</p>
+          <p class="hint">Modules only lock together if they share the unit size, depth and rail size. Clearances can differ between batches.</p>
           <p id="adv-errors" class="alert" role="alert" hidden></p>
         </details>
       </div>
