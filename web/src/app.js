@@ -45,6 +45,7 @@ const EXAMPLE = () => ({
     lettering: 'engraved',                  // 'engraved' pressed in | 'raised'
     tilt: false,                            // top labels on a 45 deg strip along the front edge
     // printed pieces per panel group: 'long' as long as the bed allows | 'each' one per column (top, bottom) or row (sides)
+    // | 'slim' (sides only) one narrow strip per row at the front, tied together by a rod
     pieces_top: 'long', pieces_sides: 'long', pieces_bottom: 'long',
     topLabel: 'Workshop', leftLabel: '', rightLabel: '', colLabels: [] },
   showDims: true,
@@ -110,7 +111,7 @@ function normalize() {
   if (!['title', 'each'].includes(f.labelMode)) f.labelMode = 'title';
   if (!['engraved', 'raised'].includes(f.lettering)) f.lettering = 'engraved';
   f.tilt = !!f.tilt;
-  for (const k of ['top', 'sides', 'bottom']) if (!['long', 'each'].includes(f[`pieces_${k}`])) f[`pieces_${k}`] = f.pieces === 'each' ? 'each' : 'long';
+  for (const k of ['top', 'sides', 'bottom']) if (!['long', 'each', ...(k === 'sides' ? ['slim'] : [])].includes(f[`pieces_${k}`])) f[`pieces_${k}`] = f.pieces === 'each' ? 'each' : 'long';
   delete f.pieces;
   for (const k of ['topLabel', 'leftLabel', 'rightLabel']) f[k] = String(f[k] || '').slice(0, 24);
   f.colLabels = Array.from({ length: s.cols }, (_, i) => String((f.colLabels || [])[i] || '').slice(0, 12));
@@ -202,7 +203,8 @@ const hash = (t) => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0
 function finishLayout(p, H) {
   const f = state.finish, U = p.unit_w, V = p.unit_h, g = p.gap, D = p.depth, rod = rodOf(f);
   const look = { raised: f.lettering === 'raised', tilt: f.tilt };
-  const sideT = f.sides === 'none' ? 0 : Kn.panelT(p, f.sides, rod, look, 'right'), ext = f.sides === 'none' ? 0 : sideT + g;
+  const slim = f.sides !== 'none' && f.pieces_sides === 'slim';
+  const sideT = f.sides === 'none' ? 0 : Kn.panelT(p, slim ? 'structural' : f.sides, rod, look, 'right'), ext = f.sides === 'none' ? 0 : sideT + g;
   const panels = [], rods = []; let plugs = 0;
   const name = { minimal: 'minimal', labeled: 'labelled', structural: 'structural' };
   const lab = (text, cap, width, cu, cv) => { const L = Kn.labelPolys(text, cap, width); return L.polys.length ? { ...L, cu, cv } : null; };
@@ -235,10 +237,16 @@ function finishLayout(p, H) {
   if (f.sides !== 'none') {
     // rows from the bottom up, so pieces break between rows
     const order = [...state.rows.keys()].reverse(), cells = order.map((ri) => state.rows[ri].h);
-    const segs = pieces(cells, V, g, 0, 0, f.pieces_sides), mid = H / 2;
+    const segs = pieces(cells, V, g, 0, 0, slim ? 'each' : f.pieces_sides), mid = H / 2;
     const titleSeg = segs.find((sg) => sg.start < mid && mid <= sg.start + sg.n) || segs[0];
     for (const side of ['left', 'right']) for (const sg of segs) {
       const labels = [];
+      if (slim) {
+        const opt = { side, n: sg.n, style: f.sides, rod, slim: true };
+        panels.push({ key: `${side}_slim_${rod.key}_${sg.n}h`, x: side === 'left' ? 0 : state.cols * U, y: sg.start * V,
+          def: { kind: 'panel', opt, pose: Kn.panelPose(side, 'structural'), label: `${side === 'left' ? 'Left' : 'Right'} side strip, slim, ${sg.n} high` } });
+        continue;
+      }
       if (f.sides === 'labeled') {
         if (each) {
           let y = 0;
@@ -257,7 +265,8 @@ function finishLayout(p, H) {
       panels.push({ key, x: side === 'left' ? 0 : state.cols * U, y: sg.start * V, def: { kind: 'panel', opt, pose: Kn.panelPose(side, f.sides, look),
         label: `${side === 'left' ? 'Left' : 'Right'} side panel, ${name[f.sides]}, ${sg.n} high${quote(labels)}` } });
     }
-    if (f.sides === 'structural') { rods.push({ rod, len: H * V - g - 2 * Kn.PLUG_LEN - 1, qty: 4, where: 'sides' }); plugs += 8; }
+    if (slim) { rods.push({ rod, len: H * V - g - 2 * Kn.PLUG_LEN - 1, qty: 2, where: 'slim side strips' }); plugs += 4; }
+    else if (f.sides === 'structural') { rods.push({ rod, len: H * V - g - 2 * Kn.PLUG_LEN - 1, qty: 4, where: 'sides' }); plugs += 8; }
   }
   if (f.bottom !== 'none') {
     const legs = f.bottom === 'legs' ? { style: f.legStyle, h: f.legH } : null;
@@ -678,7 +687,8 @@ function renderControls(m) {
     : 'Partition walls are printed as part of the drawer, across and front to back.';
   const f = state.finish;
   for (const b of document.querySelectorAll('[data-fin]')) b.setAttribute('aria-pressed', String(String(f[b.dataset.fin]) === b.dataset.v));
-  const topL = f.top === 'labeled', sideL = f.sides === 'labeled';
+  const slim = f.sides !== 'none' && f.pieces_sides === 'slim';
+  const topL = f.top === 'labeled', sideL = f.sides === 'labeled' && !slim;
   $('labels-section').hidden = !topL && !sideL;
   $('lmode-each').textContent = topL && sideL ? 'Each column and row' : topL ? 'Each column' : 'Each row';
   $('tilt-field').hidden = !topL;
@@ -689,9 +699,14 @@ function renderControls(m) {
     : 'Pressed-in letters 0.6 mm deep. The panels print flat, face down.';
   renderLabelInputs(topL, sideL);
   $('legs-fields').hidden = f.bottom !== 'legs';
-  $('rod-field').hidden = f.top !== 'structural' && f.sides !== 'structural';
+  $('rod-field').hidden = f.top !== 'structural' && f.sides !== 'structural' && !slim;
+  $('pc-sides-row').setAttribute('aria-pressed', String(f.pieces_sides !== 'long'));
+  $('pc-sides-width').hidden = f.sides === 'none' || f.pieces_sides === 'long'; $('pc-sides-hint').hidden = f.sides === 'none';
+  $('pc-sides-hint').textContent = slim
+    ? `One ${Kn.SLIM_D} mm strip per row at the front of each side, with a rod running through every row to tie them together. Any side style gives the same strips; labels are left off.`
+    : f.pieces_sides === 'each' ? 'One full-depth panel per row.' : 'Split only where a side is taller than the bed.';
   if (document.activeElement !== $('fin-rodD')) $('fin-rodD').value = f.rodD;
-  $('rod-hint').textContent = `${f.rodShape === 'round' ? 'Diameter' : 'Width across the flats'}, ${Kn.ROD_MIN} to ${Kn.ROD_MAX} mm. Each channel is ${fmt(f.rodD + 2 * Kn.ROD_FIT)} mm${f.rodShape === 'square' ? ' square' : ''} (0.3 mm clearance), and two rods run through each structural panel, closed with printed end plugs. Cut lengths are in the parts list.`;
+  $('rod-hint').textContent = `${f.rodShape === 'round' ? 'Diameter' : 'Width across the flats'}, ${Kn.ROD_MIN} to ${Kn.ROD_MAX} mm. Each channel is ${fmt(f.rodD + 2 * Kn.ROD_FIT)} mm${f.rodShape === 'square' ? ' square' : ''} (0.3 mm clearance), and two rods run through each structural panel (one through each side's slim strips), closed with printed end plugs. Cut lengths are in the parts list.`;
   for (const k of ['top', 'sides', 'bottom']) $(`pieces-${k}-field`).hidden = f[k] === 'none';
   $('leg-out').textContent = `${fmt(f.legH)} mm`; $('leg-down').disabled = f.legH <= 5; $('leg-up').disabled = f.legH >= 120;
   const sw = (list, cur, kind) => list.map(([name, hex]) =>
@@ -859,6 +874,7 @@ function bind() {
   });
   $('fin-rodD').onchange = (e) => { state.finish.rodD = Number(e.target.value); update(); e.target.value = state.finish.rodD; };
   for (const b of document.querySelectorAll('[data-style]')) b.onclick = () => { state.style = b.dataset.style; update(); };
+  $('pc-sides-row').onclick = () => { if (state.finish.pieces_sides === 'long') { state.finish.pieces_sides = 'each'; update(); } };
   for (const b of document.querySelectorAll('[data-fin]')) b.onclick = () => {
     const v = b.dataset.v; state.finish[b.dataset.fin] = v === 'true' ? true : v === 'false' ? false : v; update();
   };

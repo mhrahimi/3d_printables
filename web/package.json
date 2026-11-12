@@ -4,7 +4,7 @@
   "description": "Browser builder for a modular, 3D-printable drawer wall: lay it out, preview it in 3D, download print-ready STLs.",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node test/matrix.test.mjs && node test/fit.test.mjs && node test/addons.test.mjs && node test/wall.test.mjs && node test/slide.test.mjs && node test/clearance.test.mjs && node test/clearance.test.mjs \"{\\\"dt_height\\\": 2, \\\"dt_neck\\\": 6, \\\"fit_dovetail\\\": 0.35, \\\"fit_side\\\": 0.45, \\\"fit_top\\\": 0.6}\"",
+    "test": "node test/matrix.test.mjs && node test/fit.test.mjs && node test/addons.test.mjs && node test/wall.test.mjs && node test/slide.test.mjs && node test/slim.test.mjs && node test/clearance.test.mjs && node test/clearance.test.mjs \"{\\\"dt_height\\\": 2, \\\"dt_neck\\\": 6, \\\"fit_dovetail\\\": 0.35, \\\"fit_side\\\": 0.45, \\\"fit_top\\\": 0.6}\"",
     "test:parity": "node test/export.test.mjs /tmp/drawer-wall-js",
     "kits": "node tools/make_kits.mjs ../docs/kits"
   },

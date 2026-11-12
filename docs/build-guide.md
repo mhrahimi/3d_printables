@@ -87,7 +87,8 @@ pull it straight forward.
 | --- | --- |
 | Top and sides | **None** (the default). **Minimal**: a 3 mm cover. **Labelled**: one title, or one label per column (top) and per row (sides); letters pressed in or raised 0.6 mm; top labels flat or on a 45° strip. **Structural**: two channels for round rod or square bar, 3–12 mm |
 | Bottom | None (the default), a base plate, or legs: straight, tapered or plinth, 5–120 mm in 2.5 mm steps, 7.5 mm to start |
-| Pieces | Set for the top, the sides and the bottom separately: as long as the bed allows, or one per column (top, bottom) or row (sides). Pieces always split between columns or rows |
+| Pieces | Set for the top, the sides and the bottom separately: one piece (split only where the bed is too small), or one per column (top, bottom) or row (sides). Pieces always split between columns or rows |
+| Slim side strips | With sides one per row, choose *Slim, with a rod*: a 30 mm strip per row at the front of each side, locked on like a panel, with one rod running through every row to tie the stack together. Any side style; labels are left off |
 | Drawer pull | A lip along the top of the front, or a round finger notch |
 | Rail size | Standard (1.6 mm) or sturdy (2.0 mm, walls 0.4 mm thicker), under **3 Print → Advanced**. Modules with different rails do not fit together |
 

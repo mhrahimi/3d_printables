@@ -217,6 +217,12 @@ export function panelT(p, style, rod, look = {}, side = 'top') {
 }
 /** Depth positions (from the front) of the two rod channels. */
 export const rodZ = (p) => { const a = Math.max(20, 0.22 * p.depth); return [a, p.depth - a]; };
+/**
+ * Slim side pieces: one 30 mm strip per row at the front, carrying a single vertical rod that
+ * runs through every row. The channel sits behind the lock spring (which ends ~12 mm in).
+ */
+export const SLIM_D = 30;
+export const slimRodZ = (rod) => SLIM_D - (rod.d / 2 + ROD_FIT) - 3;
 /** Print orientation of an add-on: thin panels lie flat, thick ones stand on their front edge. */
 export function panelPose(side, style, look = {}) {
   if (side === 'bottom') return style === 'legs' ? 'case' : 'base';
@@ -596,9 +602,9 @@ export function createKernel(M) {
     return hull(pts);
   }
   /** Two channels along x for round or square rods; round ones are teardrops so they print on edge. */
-  function rodChannels(p, rod, X0, X1, yc) {
+  function rodChannels(p, rod, X0, X1, yc, zs = rodZ(p)) {
     const r = rod.d / 2 + ROD_FIT, out = [];
-    for (const zc of rodZ(p)) {
+    for (const zc of zs) {
       let pts;
       // +z is up when printed. Square bars get a true square channel (its roof is a short
       // bridge, under 13 mm); round ones a teardrop with a 45 deg roof
@@ -645,7 +651,7 @@ export function createKernel(M) {
         bumps.push(prism('x', [[Yt + OV, z1], [Y0, z1], [Y0 - lb, z2], [Y0 - lb, z3], [Y0, z4], [Yt + OV, z4]], xf + 0.3, xf + 0.3 + bw));
       }
     }
-    if (o.rod) cuts.push(...rodChannels(p, o.rod, X0, X1, Y0 + thick(p) + 0.4 + o.rod.d / 2 + ROD_FIT));
+    if (o.rod) cuts.push(...rodChannels(p, o.rod, X0, X1, Y0 + thick(p) + 0.4 + o.rod.d / 2 + ROD_FIT, o.rodZ));
     return fuse(cut(body, cuts), bumps);
   }
 
@@ -683,7 +689,7 @@ export function createKernel(M) {
       if (o.through) cuts.push(box(xa, xb, ybot - 1, ytop + 1, wz0, wz1));
       else cuts.push(prism('x', [[ytop + 1, wz0], [ytop - pd, wz0], [ytop - pd, wz1], [ytop + 1, wz1 + pd + 1]], xa, xb));
     }
-    if (o.rod) cuts.push(...rodChannels(p, o.rod, X0, X1, ytop - (thick(p) + 0.4 + o.rod.d / 2 + ROD_FIT)));
+    if (o.rod) cuts.push(...rodChannels(p, o.rod, X0, X1, ytop - (thick(p) + 0.4 + o.rod.d / 2 + ROD_FIT), o.rodZ));
     return cut(body, cuts);
   }
 
@@ -697,11 +703,15 @@ export function createKernel(M) {
    * o.rod   { shape: 'round' | 'square', d }          o.legs   { style, h }
    * o.labels [{ polys, cu, cv }]  text centred at (cu, cv) on the exposed face (o.label: one)
    * o.look  { raised, tilt }  raised letters instead of engraved; tilted strip (top only)
+   * o.slim  sides only: a SLIM_D deep strip with one rod channel (any style; labels dropped)
    */
   function panelBuild(p, o) {
     const horiz = o.side === 'top' || o.side === 'bottom';
+    // slim side strip: a structural piece cut to SLIM_D deep with one rod channel
+    if (o.slim && !horiz) { p = { ...p, depth: SLIM_D }; o = { ...o, style: 'structural', labels: [], label: null }; }
     const rod = o.style === 'structural' ? o.rod : null;
-    const c = { n: o.n, pitch: horiz ? p.unit_w : p.unit_h, lockOff: horiz ? p.lock_x : p.lock_y, extLo: o.extLo, extHi: o.extHi, rod };
+    const c = { n: o.n, pitch: horiz ? p.unit_w : p.unit_h, lockOff: horiz ? p.lock_x : p.lock_y, extLo: o.extLo, extHi: o.extHi, rod,
+      rodZ: o.slim && !horiz ? [slimRodZ(rod)] : undefined };
     let m;
     if (o.side === 'bottom') m = rPanelBuild(p, { ...c, rod: null, T: p.base_t, legs: o.style === 'legs' ? o.legs : null, flat: o.style !== 'legs' });
     else {

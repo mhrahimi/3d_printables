@@ -404,8 +404,13 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
         </div>
         <div class="field" id="pieces-sides-field"><span class="field-label" id="l-pc-sides">Pieces</span>
           <div class="seg" role="group" aria-labelledby="l-pc-sides">
-            <button type="button" data-fin="pieces_sides" data-v="long" data-fid="pc-sides-long">As long as the bed allows</button><button type="button" data-fin="pieces_sides" data-v="each" data-fid="pc-sides-each">One per row</button>
+            <button type="button" data-fin="pieces_sides" data-v="long" data-fid="pc-sides-long">One piece</button><button type="button" id="pc-sides-row" data-fid="pc-sides-row">One per row</button>
           </div></div>
+        <div class="field" id="pc-sides-width"><span class="field-label" id="l-pc-width">Row pieces</span>
+          <div class="seg" role="group" aria-labelledby="l-pc-width">
+            <button type="button" data-fin="pieces_sides" data-v="each" data-fid="pc-sides-each">Wide, full depth</button><button type="button" data-fin="pieces_sides" data-v="slim" data-fid="pc-sides-slim">Slim, with a rod</button>
+          </div></div>
+        <p class="hint" id="pc-sides-hint"></p>
       </div>
       <div class="section" id="labels-section">
         <div class="section-head"><h2 id="h-labels">Labels</h2><p>Letters, numbers, - + / &amp; #</p></div>
@@ -425,7 +430,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
         <p class="hint" id="label-print-hint"></p>
       </div>
       <div class="section" id="rod-field">
-        <div class="section-head"><h2>Rods</h2><p>For the structural panels</p></div>
+        <div class="section-head"><h2>Rods</h2><p>For structural panels and slim strips</p></div>
         <div class="inline">
           <div class="seg compact" role="group" aria-label="Rod shape">
             <button type="button" data-fin="rodShape" data-v="round" data-fid="rod-round">Round</button><button type="button" data-fin="rodShape" data-v="square" data-fid="rod-square">Square</button>

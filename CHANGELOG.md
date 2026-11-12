@@ -17,6 +17,8 @@
 - *Open in Kiri:Moto* (3 Print > Slice in your browser): send one part or the whole set straight
   into Grid.Space's free browser slicer, without downloading or uploading anything.
 - New walls start with no top, sides or bottom; add them under 2 Finish.
+- Slim side strips: with sides split one per row, each row can be a 30 mm strip at the front
+  with one rod running through every row (any side style). Covered by a new test suite.
 - Drawers preview in white by default; cyan is no longer a drawer colour (it is the page's
   highlight colour). Red is offered instead.
 - The 3D view buttons are icons only (open drawers, dimensions, reset view).

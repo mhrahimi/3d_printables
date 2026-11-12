@@ -29,6 +29,9 @@ const WALLS = [
   { name: 'tight PLA, labelled raised sides, one piece per column and row', over: { fit_dovetail: 0.15, fit_side: 0.25, fit_top: 0.4 },
     rows: [{ m: 1, h: 1, a: 1, d: 1 }, { m: 1, h: 2, a: 2, d: 2 }], each: true,
     finish: { top: 'minimal', sides: 'labeled', look: { raised: true }, bottom: 'legs' } },
+  { name: 'slim side strips with a rod, structural top', over: {},
+    rows: [{ m: 1, h: 1, a: 2, d: 1 }, { m: 2, h: 2, a: 2, d: 2 }, { m: 4, h: 1, a: 3, d: 1 }], sideEach: true,
+    finish: { top: 'structural', sides: 'labeled', slim: true, look: {}, bottom: 'plate', rod: { shape: 'round', d: 8 } } },
 ];
 
 for (const W of WALLS) {
@@ -50,18 +53,18 @@ for (const W of WALLS) {
     y += r.h;
   }
   const H = y, f = W.finish, rod = f.rod || { shape: 'round', d: 6 };
-  const sideT = Kn.panelT(p, f.sides, rod, f.look, 'right'), ext = sideT + g;
+  const sideT = Kn.panelT(p, f.slim ? 'structural' : f.sides, rod, f.look, 'right'), ext = sideT + g;
   const lab = (t, cap, width, cu, cv) => ({ ...Kn.labelPolys(t, cap, width), cu, cv });
-  const runs = (count, sizes) => (W.each ? sizes.map((s, i) => ({ start: sizes.slice(0, i).reduce((a, b) => a + b, 0), n: s, first: i === 0, last: i === sizes.length - 1 }))
+  const runs = (count, sizes, each = W.each) => (each ? sizes.map((s, i) => ({ start: sizes.slice(0, i).reduce((a, b) => a + b, 0), n: s, first: i === 0, last: i === sizes.length - 1 }))
     : [{ start: 0, n: count, first: true, last: true }]);
   for (const sg of runs(cols, Array(cols).fill(1))) {
     const labels = f.top === 'labeled' ? Array.from({ length: sg.n }, (_, i) => lab(`C${sg.start + i + 1}`, 8, U - 10, (i + 0.5) * U, f.look.tilt ? 0 : 11)) : [];
     parts.push({ name: `top @${sg.start}`, m: K.panel(p, { side: 'top', n: sg.n, style: f.top, rod, look: f.look, labels, extLo: sg.first ? ext : 0, extHi: sg.last ? ext : 0 }).translate([sg.start * U, H * V, 0]) });
     parts.push({ name: `bottom @${sg.start}`, m: K.panel(p, { side: 'bottom', n: sg.n, style: f.bottom, legs: { style: 'tapered', h: 15 }, extLo: sg.first ? ext : 0, extHi: sg.last ? ext : 0 }) .translate([sg.start * U, 0, 0]) });
   }
-  for (const side of ['left', 'right']) for (const sg of runs(H, W.rows.map((r) => r.h))) {
-    const labels = f.sides === 'labeled' ? [lab(`R${sg.start + 1}`, 8, p.depth - 28, p.depth / 2, (sg.n * V) / 2)] : [];
-    parts.push({ name: `${side} @${sg.start}`, m: K.panel(p, { side, n: sg.n, style: f.sides, rod, look: f.look, labels }).translate([side === 'left' ? 0 : cols * U, sg.start * V, 0]) });
+  for (const side of ['left', 'right']) for (const sg of runs(H, W.rows.map((r) => r.h), W.each || W.sideEach)) {
+    const labels = f.sides === 'labeled' && !f.slim ? [lab(`R${sg.start + 1}`, 8, p.depth - 28, p.depth / 2, (sg.n * V) / 2)] : [];
+    parts.push({ name: `${side} @${sg.start}`, m: K.panel(p, { side, n: sg.n, style: f.sides, rod, look: f.look, labels, slim: !!f.slim }).translate([side === 'left' ? 0 : cols * U, sg.start * V, 0]) });
   }
   const closed = overlaps([...parts, ...drawers]);
   check(`${W.name}: ${parts.length + drawers.length} parts, no two overlap with drawers closed`, !closed.length, closed.slice(0, 5).join('; '));
