@@ -14,8 +14,8 @@
 - Rows are listed top row first, as on the wall (still numbered from the bottom).
 - Legs are off by default (base plate); when on they start at 7.5 mm, adjustable 5–120 mm.
 - Panel pieces are chosen separately for the top, the sides and the bottom.
-- *Open in Kiri:Moto*: send one part or the whole set straight into Grid.Space's free browser
-  slicer, without downloading or uploading anything.
+- *Open in Kiri:Moto* (3 Print > Slice in your browser): send one part or the whole set straight
+  into Grid.Space's free browser slicer, without downloading or uploading anything.
 
 ## 1.0.0 — 2026-11-12
 

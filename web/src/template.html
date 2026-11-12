@@ -244,9 +244,6 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .parts { padding: var(--s5) clamp(var(--s4), 3vw, var(--s6)) var(--s6); display: grid; gap: var(--s4); background: var(--sheet); }
 .parts-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s2) var(--s4); }
 .parts-head p { color: var(--graphite); }
-.kiri-all { font-size: var(--fs--1); margin-left: auto; }
-.kiri-one { font: inherit; color: var(--graphite); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
-.kiri-one:hover { color: var(--ink); }
 .kiri-dlg { width: min(1400px, 96vw); height: 92vh; max-width: none; max-height: none; padding: 0; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); }
 .kiri-dlg[open] { display: flex; flex-direction: column; }
 .kiri-dlg::backdrop { background: rgb(0 0 0 / .45); }
@@ -469,6 +466,13 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
         <label class="check" for="opt-kit"><input type="checkbox" id="opt-kit"><span>Include the fit test kit<small id="kit-hint"></small></span></label>
       </div>
       <div class="section">
+        <div class="section-head"><h2>Slice in your browser</h2><a class="small-link" href="https://grid.space/kiri/" target="_blank" rel="noopener">About Kiri:Moto</a></div>
+        <label class="field" for="kiri-part"><span class="field-label">Parts to send</span>
+          <select id="kiri-part" class="text"></select></label>
+        <button type="button" id="btn-kiri" class="btn wide"><svg class="ic" aria-hidden="true"><use href="#i-slice"/></svg><span>Open in Kiri:Moto</span></button>
+        <p class="hint">Kiri:Moto is a free slicer that runs in the browser. The parts go straight from this page into it; nothing is uploaded.</p>
+      </div>
+      <div class="section">
         <h2>Preview colours</h2>
         <div class="field"><span class="field-label" id="l-case">Casings</span><div id="case-colors" class="swatches" role="group" aria-labelledby="l-case"></div></div>
         <div class="field"><span class="field-label" id="l-drawer">Drawers</span><div id="drawer-colors" class="swatches" role="group" aria-labelledby="l-drawer"></div></div>
@@ -528,7 +532,6 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
       <div class="parts-head">
         <h2 id="h-parts">Parts to print</h2>
         <p>One STL per part, already in print orientation, quantity in the file name.</p>
-        <button type="button" id="btn-kiri" class="btn quiet kiri-all" title="Slice these parts in your browser with Kiri:Moto, a free slicer"><svg class="ic" aria-hidden="true"><use href="#i-slice"/></svg><span>Open all in Kiri:Moto</span></button>
       </div>
       <table id="parts-table">
         <thead><tr><th scope="col">Part and file</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Print size (mm)</th><th scope="col" class="num">Each (g)</th><th scope="col" class="num">Total (g)</th></tr></thead>

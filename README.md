@@ -26,7 +26,7 @@ without supports on a 256 mm bed.
 - **Print it.** The download is a ZIP with one STL per part in print orientation (quantity in
   the file name), the assembled wall, a parts list (CSV), print notes and the rod cut list.
   The geometry is built in the browser. Nothing is uploaded. To slice without downloading,
-  *Open in Kiri:Moto* sends one part or the whole set to [Kiri:Moto](https://grid.space/kiri/),
+  *Open in Kiri:Moto* under 3 Print sends one part or the whole set to [Kiri:Moto](https://grid.space/kiri/),
   a free browser slicer.
 
 | | |

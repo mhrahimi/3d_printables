@@ -760,12 +760,15 @@ function renderParts(m) {
   ].map(([v, l]) => `<div><dt>${l}</dt><dd>${v}</dd></div>`).join('');
   $('zip-label').innerHTML = `Download ${m.parts.length} <span class="zip-ext">part </span>files<span class="zip-ext"> (.zip)</span>`;
   $('parts-body').innerHTML = m.parts.map((d) => `<tr>
-      <td><span class="dot ${d.kind === 'case' || d.kind === 'panel' || d.kind === 'plug' ? 'dot-case' : 'dot-drawer'}"></span>${esc(d.label)}<span class="file">${d.qty}x_${d.key}.stl · <button type="button" class="kiri-one" data-kiri="${esc(d.key)}" aria-label="Open ${esc(d.label)} in Kiri:Moto">Kiri:Moto</button></span></td>
+      <td><span class="dot ${d.kind === 'case' || d.kind === 'panel' || d.kind === 'plug' ? 'dot-case' : 'dot-drawer'}"></span>${esc(d.label)}<span class="file">${d.qty}x_${d.key}.stl</span></td>
       <td class="num qty" aria-label="Quantity ${d.qty}">${d.qty}</td>
       <td class="num" data-label="Print size">${fmt(d.size[0])} × ${fmt(d.size[1])} × ${fmt(d.size[2])} mm</td>
       <td class="num" data-label="Each">${Math.round(d.grams)} g</td>
       <td class="num" data-label="Total">${Math.round(d.grams * d.qty)} g</td></tr>`).join('');
   $('parts-foot').innerHTML = `<tr><td>Total</td><td class="num qty">${m.pieces}</td><td></td><td></td><td class="num" data-label="Weight">${Math.round(m.grams)} g</td></tr>`;
+  const kp = $('kiri-part'), keep = kp.value;
+  kp.innerHTML = `<option value="">All ${m.parts.length} parts, one of each</option>` + m.parts.map((d) => `<option value="${esc(d.key)}">${esc(d.label)} (print ${d.qty})</option>`).join('');
+  kp.value = m.parts.some((d) => d.key === keep) ? keep : '';
   $('rods-wrap').hidden = !m.rods.length;
   $('rods-body').innerHTML = m.rods.map((r) => `<tr><td>${r.rod.label} (${r.where})</td><td class="num qty">${r.qty}</td><td class="num">${fmt(r.len)}</td></tr>`).join('');
   const cl = state.drawerColor === 'clear' ? 'clear' : 'drawer colour';
@@ -895,57 +898,54 @@ function bind() {
   $('btn-dims').onclick = () => { state.showDims = !state.showDims; syncDims(); try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* not saved */ } };
   $('btn-zip').onclick = downloadZip;
   $('btn-copy').onclick = copyList;
-  $('btn-kiri').onclick = () => openKiri(null);
-  $('parts-body').addEventListener('click', (e) => { const b = e.target.closest('[data-kiri]'); if (b) openKiri(b.dataset.kiri); });
+  $('btn-kiri').onclick = () => openKiri($('kiri-part').value || null);
   $('kiri-close').onclick = () => $('kiri-dlg').close();
-  $('kiri-resend').onclick = () => sendKiri(true);
+  $('kiri-resend').onclick = () => sendKiri();
 }
 
 
 // ---------------------------------------------------------------- Kiri:Moto
-// Grid.Space's browser slicer, embedded in an iframe and fed through its frame
-// message API (grid-apps src/kiri/run/frame.js): {mode}, {clear}, {parse, type}.
+// Grid.Space's browser slicer, embedded in an iframe and driven through its frame
+// message API ({clear}, {load: url}). Notes from testing the live site (v4.7.3):
+// - {parse: data} never adds the part (its STL reader ignores the callback), so each
+//   part goes as a data: URL through {load}; Kiri picks the reader from the
+//   ".stl" in the URL, hence the name= parameter.
+// - Kiri sends no reliable reply, and restores its last workspace while it starts,
+//   so we wait a little after the frame loads, clear the bed, and on a cold start
+//   send once more a few seconds later (clear + send again, so nothing doubles).
 const KIRI = { url: 'https://grid.space/kiri/', origin: 'https://grid.space' };
-let kiriJob = null, kiriReady = null;
+let kiriJob = null, kiriFrame = null;
 
-/** Kiri:Moto reads binary STL through a Float32Array, so the byte count must be
- *  a multiple of 4: pad an odd triangle count with one zero-area triangle. */
-function kiriStl(bytes) {
-  const n = new DataView(bytes.buffer, bytes.byteOffset).getUint32(80, true);
-  if (n % 2 === 0) return bytes.slice().buffer;
-  const out = new Uint8Array(bytes.byteLength + 50);
-  out.set(bytes);
-  new DataView(out.buffer).setUint32(80, n + 1, true);
-  return out.buffer;
+function stlDataUrl(name, bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return `data:application/octet-stream;name=${encodeURIComponent(name)}.stl;base64,${btoa(s)}`;
 }
 
 function openKiri(key) {
   if (!model) return;
   const parts = key ? model.parts.filter((d) => d.key === key) : model.parts;
   if (!parts.length) return;
-  kiriJob = parts;
+  kiriJob = parts.map((d) => ({ label: d.label, url: stlDataUrl(`${d.qty}x_${d.key}`, Kn.stlBytes(d.entry.print)) }));
   $('kiri-what').textContent = key ? `· ${parts[0].label}`
-    : `· one of each of the ${parts.length} parts (copy them in Kiri:Moto for the quantities in the list)`;
+    : `· one of each of the ${parts.length} parts (copy them in Kiri:Moto for the quantities in the parts list)`;
   const dlg = $('kiri-dlg'), fr = $('kiri-frame');
   if (!dlg.open) dlg.showModal();
-  if (!kiriReady) {
-    // no reliable "ready" reply from the frame: send once it has loaded and settled
-    kiriReady = new Promise((res) => { fr.addEventListener('load', () => setTimeout(res, 1500), { once: true }); });
+  if (!kiriFrame) {
+    kiriFrame = new Promise((res) => {
+      fr.addEventListener('load', () => { setTimeout(res, 1200); setTimeout(() => sendKiri(), 4500); }, { once: true });
+    });
     fr.src = KIRI.url;
+    setStatus('Opening Kiri:Moto…');
   }
-  kiriReady.then(() => sendKiri(true));
+  kiriFrame.then(() => sendKiri());
 }
 
-function sendKiri(clear) {
+function sendKiri() {
   const win = $('kiri-frame').contentWindow;
   if (!win || !kiriJob) return;
-  const post = (msg, xfer) => win.postMessage(msg, KIRI.origin, xfer);
-  post({ mode: 'FDM' });
-  if (clear) post({ clear: true });
-  for (const d of kiriJob) {
-    const ab = kiriStl(Kn.stlBytes(d.entry.print));
-    post({ parse: ab, type: 'stl' }, [ab]);
-  }
+  win.postMessage({ clear: true }, KIRI.origin);
+  for (const p of kiriJob) win.postMessage({ load: p.url }, KIRI.origin);
   setStatus(`Sent ${kiriJob.length === 1 ? kiriJob[0].label : `${kiriJob.length} parts`} to Kiri:Moto. If the bed stays empty, press Send again.`);
 }
 
