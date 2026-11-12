@@ -21,7 +21,8 @@
   highlight colour). Red is offered instead.
 - The 3D view buttons are icons only (open drawers, dimensions, reset view).
 - The fit test kit has its own [page](docs/fit-test-kit.md), linked from the builder's header,
-  with a ready-made ZIP for each filament and rail size (`npm run kits` rebuilds them). It is no
+  where you pick the filament and rail size and download a ready-made ZIP (`npm run kits`
+  rebuilds them). The header link opens it with the builder's current choices. The kit is no
   longer part of the builder's download.
 
 ## 1.0.0 — 2026-11-12

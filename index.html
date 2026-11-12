@@ -337,7 +337,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
 <header class="masthead">
   <h1>Drawer wall builder</h1>
   <nav class="mast-links" aria-label="Guides">
-    <a href="docs/fit-test-kit.html" target="_blank" rel="noopener">Fit test kit<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+    <a id="kit-link" href="docs/fit-test-kit.html" target="_blank" rel="noopener" title="Download a fit test kit for your filament">Fit test kit<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
     <a href="docs/build-guide.html" target="_blank" rel="noopener">Build guide<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
   </nav>
 </header>
@@ -2321,6 +2321,7 @@ function renderControls(m) {
   for (const k of ['unit_w', 'unit_h', 'depth']) if (document.activeElement !== $(`adv-${k}`)) $(`adv-${k}`).value = state[k];
   const mat = MATERIALS[state.material], p = m.p, sgn = (o) => (o > 0 ? '+' : o < 0 ? '−' : '±') + Math.abs(o).toFixed(2);
   $('adv-material').value = state.material;
+  $('kit-link').href = `${KIT_URL}?filament=${state.material}&rails=${state.rails}`;
   $('material-hint').textContent = `Sets the starting clearances per side: rails ${mat.rail.toFixed(2)} mm, drawers ${mat.side.toFixed(2)} mm. Also used for the weight estimate.`;
   const opts = (sel, base, label) => { sel.innerHTML = OFFSETS.map((o) => `<option value="${o}">${o === 0 ? `Preset, ${base.toFixed(2)} mm` : `${sgn(o)} → ${(base + o).toFixed(2)} mm`}${label(o)}</option>`).join(''); };
   opts($('adv-railOffset'), mat.rail, (o) => ` (${Math.round(o / 0.05) + 3}-notch piece)`);

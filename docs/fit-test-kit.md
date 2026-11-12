@@ -14,16 +14,62 @@ and tells you which clearances suit your printer before you print the whole wall
 
 ## Download
 
-Pick your filament and the rail size you will use in the builder (standard unless you chose
-*Sturdy* under **3 Print → Advanced**). Each kit is centred on that filament's preset.
+Pick the filament and rail size you will use in the builder (standard rails unless you chose
+*Sturdy* under **3 Print → Advanced**). The kit is centred on that filament's preset.
 
-| Filament | Standard rails (1.6 mm) | Sturdy rails (2.0 mm) |
-| --- | --- | --- |
-| PLA / PLA+ | [PLA, standard](kits/fit-test-kit_PLA_standard.zip) | [PLA, sturdy](kits/fit-test-kit_PLA_sturdy.zip) |
-| PETG | [PETG, standard](kits/fit-test-kit_PETG_standard.zip) | [PETG, sturdy](kits/fit-test-kit_PETG_sturdy.zip) |
-| ABS / ASA | [ABS, standard](kits/fit-test-kit_ABS_standard.zip) | [ABS, sturdy](kits/fit-test-kit_ABS_sturdy.zip) |
+<form id="kit-form" class="kit-form" onsubmit="return false">
+  <label>Filament
+    <select id="kit-filament">
+      <option value="PLA">PLA / PLA+ (rails 0.25 mm, drawers 0.35 mm)</option>
+      <option value="PETG">PETG (rails 0.30 mm, drawers 0.40 mm)</option>
+      <option value="ABS">ABS / ASA (rails 0.35 mm, drawers 0.45 mm)</option>
+    </select>
+  </label>
+  <label>Rail size
+    <select id="kit-rails">
+      <option value="standard">Standard, 1.6 mm (the default)</option>
+      <option value="sturdy">Sturdy, 2.0 mm</option>
+    </select>
+  </label>
+  <a id="kit-download" class="kit-download" href="kits/fit-test-kit_PLA_standard.zip" download>Download the fit test kit</a>
+  <span id="kit-file" class="kit-file">fit-test-kit_PLA_standard.zip · 12 STL files, about 25 KB</span>
+</form>
+
+<style>
+.kit-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; margin: 16px 0 8px;
+  padding: 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; }
+.kit-form label { display: grid; gap: 4px; font-weight: 600; font-size: 14px; }
+.kit-form select { min-height: 36px; padding: 4px 8px; font: inherit; font-weight: 400; border: 1px solid #8c959f;
+  border-radius: 6px; background: #fff; }
+.kit-download { display: inline-flex; align-items: center; min-height: 36px; padding: 0 16px; border-radius: 6px;
+  background: #0f2340; color: #fff !important; font-weight: 600; text-decoration: none !important; }
+.kit-download:hover { background: #1d3a63; }
+.kit-file { flex-basis: 100%; font-size: 13px; color: #57606a; }
+</style>
+
+<script>
+(function () {
+  var filaments = ['PLA', 'PETG', 'ABS'];
+  var fil = document.getElementById('kit-filament'), rails = document.getElementById('kit-rails');
+  var link = document.getElementById('kit-download'), info = document.getElementById('kit-file');
+  // the builder links here with its current choices: ?filament=PETG&rails=sturdy
+  var q = new URLSearchParams(location.search);
+  var f = (q.get('filament') || '').toUpperCase();
+  if (filaments.indexOf(f) >= 0) fil.value = f;
+  if (q.get('rails') === 'sturdy' || q.get('rails') === 'standard') rails.value = q.get('rails');
+  function sync() {
+    var key = fil.value + '_' + rails.value, name = 'fit-test-kit_' + key + '.zip';
+    link.href = 'kits/' + name;
+    info.textContent = name + ' · 12 STL files, about 25 KB';
+  }
+  fil.onchange = rails.onchange = sync; sync();
+})();
+</script>
 
 Each ZIP holds 12 STL files (13 pieces) already in print orientation, and a short README.
+Direct links: PLA [standard](kits/fit-test-kit_PLA_standard.zip) / [sturdy](kits/fit-test-kit_PLA_sturdy.zip),
+PETG [standard](kits/fit-test-kit_PETG_standard.zip) / [sturdy](kits/fit-test-kit_PETG_sturdy.zip),
+ABS/ASA [standard](kits/fit-test-kit_ABS_standard.zip) / [sturdy](kits/fit-test-kit_ABS_sturdy.zip).
 
 | Piece | How many | What it tests |
 | --- | --- | --- |

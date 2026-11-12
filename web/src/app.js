@@ -701,6 +701,7 @@ function renderControls(m) {
   for (const k of ['unit_w', 'unit_h', 'depth']) if (document.activeElement !== $(`adv-${k}`)) $(`adv-${k}`).value = state[k];
   const mat = MATERIALS[state.material], p = m.p, sgn = (o) => (o > 0 ? '+' : o < 0 ? '−' : '±') + Math.abs(o).toFixed(2);
   $('adv-material').value = state.material;
+  $('kit-link').href = `${KIT_URL}?filament=${state.material}&rails=${state.rails}`;
   $('material-hint').textContent = `Sets the starting clearances per side: rails ${mat.rail.toFixed(2)} mm, drawers ${mat.side.toFixed(2)} mm. Also used for the weight estimate.`;
   const opts = (sel, base, label) => { sel.innerHTML = OFFSETS.map((o) => `<option value="${o}">${o === 0 ? `Preset, ${base.toFixed(2)} mm` : `${sgn(o)} → ${(base + o).toFixed(2)} mm`}${label(o)}</option>`).join(''); };
   opts($('adv-railOffset'), mat.rail, (o) => ` (${Math.round(o / 0.05) + 3}-notch piece)`);
