@@ -37,7 +37,7 @@ const EXAMPLE = () => ({
     { m: 2, h: 2, across: 2, deep: 2, labelL: '', labelR: '' },
   ],
   style: 'fixed',                           // 'fixed' printed-in walls | 'removable' dividers
-  finish: { top: 'labeled', sides: 'minimal', bottom: 'plate', legStyle: 'tapered', legH: 7.5,
+  finish: { top: 'none', sides: 'none', bottom: 'none', legStyle: 'tapered', legH: 7.5,
     rodShape: 'round', rodD: 6,
     labelMode: 'title',                     // 'title' one text per panel | 'each' per column (top) and per row (sides)
     lettering: 'engraved',                  // 'engraved' pressed in | 'raised'
@@ -58,9 +58,12 @@ try {
     if (!saved.legs15 && saved.finish && saved.finish.legH === 40) saved.finish.legH = 15;
     // legs became optional and lower by default: designs still on the old default lose them
     if (!saved.legs75 && saved.finish && saved.finish.bottom === 'legs' && saved.finish.legH === 15) { saved.finish.bottom = 'plate'; saved.finish.legH = 7.5; }
+    // no finish panels by default: designs still on the old defaults (labelled top, minimal sides, base plate) lose them
+    const f0 = saved.finish;
+    if (!saved.finNone && f0 && f0.top === 'labeled' && f0.sides === 'minimal' && f0.bottom === 'plate') { f0.top = 'none'; f0.sides = 'none'; f0.bottom = 'none'; }
     state = { ...state, ...saved };
   }
-  state.legs15 = true; state.legs75 = true;
+  state.legs15 = true; state.legs75 = true; state.finNone = true;
 } catch { /* storage unavailable: start from the example */ }
 
 const $ = (id) => document.getElementById(id);
@@ -555,7 +558,8 @@ function placeDimLabels(v) {
 }
 function syncDims() {
   const b = $('btn-dims'); b.setAttribute('aria-pressed', String(state.showDims));
-  b.querySelector('span').textContent = state.showDims ? 'Hide dimensions' : 'Show dimensions';
+  const t = state.showDims ? 'Hide dimensions' : 'Show dimensions';
+  b.title = t; b.setAttribute('aria-label', t);
   if (view3d && view3d.dims) { view3d.dims.visible = state.showDims; view3d.invalidate(); }
 }
 function highlightRow(row) {
@@ -568,7 +572,9 @@ function highlightRow(row) {
 function syncOpenButton() {
   const v = view3d; if (!v) return;
   const any = v.drawers.some((d) => d.target > 0);
-  $('btn-open').querySelector('span').textContent = any ? 'Close all drawers' : 'Open all drawers';
+  const b = $('btn-open'), t = any ? 'Close all drawers' : 'Open all drawers';
+  b.title = t; b.setAttribute('aria-label', t); b.setAttribute('aria-pressed', String(any));
+  b.querySelector('use').setAttribute('href', any ? '#i-drawers-shut' : '#i-drawers-out');
 }
 
 // ---------------------------------------------------------------- UI
@@ -710,7 +716,6 @@ function renderControls(m) {
   const mat = MATERIALS[state.material], p = m.p, sgn = (o) => (o > 0 ? '+' : o < 0 ? '−' : '±') + Math.abs(o).toFixed(2);
   $('adv-material').value = state.material;
   $('material-hint').textContent = `Sets the starting clearances per side: rails ${mat.rail.toFixed(2)} mm, drawers ${mat.side.toFixed(2)} mm. Also used for the weight estimate.`;
-  $('kit-hint').textContent = `About 100 g. A rail with five groove pieces and a drawer opening with three drawer slices. The piece that fits best tells you how to adjust the clearances under Advanced.`;
   const opts = (sel, base, label) => { sel.innerHTML = OFFSETS.map((o) => `<option value="${o}">${o === 0 ? `Preset, ${base.toFixed(2)} mm` : `${sgn(o)} → ${(base + o).toFixed(2)} mm`}${label(o)}</option>`).join(''); };
   opts($('adv-railOffset'), mat.rail, (o) => ` (${Math.round(o / 0.05) + 3}-notch piece)`);
   opts($('adv-drawerOffset'), mat.side, (o) => (Math.abs(o) === 0.1 || o === 0 ? ` (${Math.round(o / 0.1) + 2}-notch slice)` : ''));

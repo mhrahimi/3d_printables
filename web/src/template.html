@@ -209,10 +209,10 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .actions { display: flex; gap: var(--s2); flex-wrap: nowrap; align-items: center; margin-left: auto; flex: none; }
 .bar .btn { font-size: var(--fs--1); padding: 0 var(--s3); white-space: nowrap; }
 @container (max-width: 520px) { .zip-ext { display: none; } }
-@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } }
+@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } .kit-long { display: none; } }
 /* preview buttons keep only their icons on a narrow stage (names stay for screen readers) */
 .stage { container-type: inline-size; }
-@container (max-width: 620px) { #view-hint { display: none; } .view-tools .btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .view-tools .btn { width: var(--hit); padding: 0; } }
+@container (max-width: 620px) { #view-hint { display: none; } }
 /* the message floats just under the bar, so the page never shifts when it appears */
 #status { position: absolute; top: calc(100% + var(--s2)); left: clamp(var(--s4), 3vw, var(--s6)); max-width: min(560px, calc(100% - 2 * var(--s4)));
   display: flex; align-items: center; gap: var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s3); font-size: var(--fs--1);
@@ -231,6 +231,10 @@ details[open] > summary .ic { transform: rotate(90deg); }
 #view:focus-visible { outline-offset: -3px; }
 .view-tools { position: absolute; top: var(--s3); right: var(--s3); display: flex; gap: var(--s2); flex-wrap: wrap; justify-content: flex-end; }
 .view-tools .btn { background: var(--sheet); }
+.btn.icon { width: var(--hit); padding: 0; }
+.view-tools .btn[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.kit-check { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--hit); padding-right: var(--s2); font-size: var(--fs--1); font-weight: 600; white-space: nowrap; cursor: pointer; }
+.kit-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--ink); }
 #view-hint { position: absolute; left: var(--s4); bottom: var(--s3); right: var(--s4); font-size: var(--fs--1); color: var(--graphite); pointer-events: none; }
 .dims { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .dims span { position: absolute; left: 0; top: 0; padding: 1px 6px; font: 600 var(--fs--1)/1.4 var(--font-body); font-variant-numeric: tabular-nums;
@@ -267,11 +271,6 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
 .dot-drawer { background: var(--drawer-color); }
 .fine { font-size: var(--fs--1); color: var(--graphite); }
 .steps { margin: 0; padding-left: 1.4em; display: grid; gap: var(--s2); max-width: var(--measure); }
-
-/* footer */
-.foot { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s4) var(--s6);
-  padding: var(--s5) clamp(var(--s4), 3vw, var(--s6)) var(--s6); border-top: 1px solid var(--rule); font-size: var(--fs--1); color: var(--graphite); }
-.foot h2 { font-size: var(--fs-1); color: var(--ink); margin-bottom: var(--s1); }
 
 /* ------------------------------------------------------------ responsive */
 @media (max-width: 1199px) { :root { --col: 360px; } .tabpanel { padding-inline: var(--s4); } }
@@ -325,6 +324,9 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
   <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 3.5v9M6 8.5l4 4 4-4M4 16h12"/></symbol>
   <symbol id="i-list" viewBox="0 0 20 20"><path d="M7.5 5.5h8.5M7.5 10h8.5M7.5 14.5h8.5M4 5.5h.01M4 10h.01M4 14.5h.01"/></symbol>
   <symbol id="i-frame" viewBox="0 0 20 20"><path d="M4 7.5V4h3.5M12.5 4H16v3.5M16 12.5V16h-3.5M7.5 16H4v-3.5"/></symbol>
+  <symbol id="i-drawers-out" viewBox="0 0 20 20"><path d="M6 16.5H2.5v-13h10.5v8"/><path d="M2.5 10H13M6.5 6.75h2.5"/><rect x="6" y="11.5" width="11.5" height="5"/><path d="M10.5 14h2.5"/></symbol>
+  <symbol id="i-drawers-shut" viewBox="0 0 20 20"><rect x="3" y="3.5" width="14" height="13"/><path d="M3 10h14M8.5 6.75h3M8.5 13.25h3"/></symbol>
+  <symbol id="i-home" viewBox="0 0 20 20"><path d="M3 9.5 10 3.5l7 6"/><path d="M5 8v8.5h10V8"/><path d="M8.5 16.5v-4.5h3v4.5"/></symbol>
   <symbol id="i-drawer" viewBox="0 0 20 20"><rect x="3.5" y="4" width="13" height="8" rx="0.5"/><path d="M2.5 12h15v4h-15zM8.5 14h3"/></symbol>
   <symbol id="i-chev" viewBox="0 0 20 20"><path d="M8 5l5 5-5 5"/></symbol>
   <symbol id="i-ruler" viewBox="0 0 20 20"><path d="M3 13.5 13.5 3l3.5 3.5L6.5 17z"/><path d="M6.5 10l1.5 1.5M9 7.5l2 2M11.5 5l1.5 1.5"/></symbol>
@@ -462,10 +464,6 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
           <span class="hint" id="material-hint"></span></label>
       </div>
       <div class="section">
-        <h2>Before the first print</h2>
-        <label class="check" for="opt-kit"><input type="checkbox" id="opt-kit"><span>Include the fit test kit<small id="kit-hint"></small></span></label>
-      </div>
-      <div class="section">
         <div class="section-head"><h2>Slice in your browser</h2><a class="small-link" href="https://grid.space/kiri/" target="_blank" rel="noopener">About Kiri:Moto</a></div>
         <label class="field" for="kiri-part"><span class="field-label">Parts to send</span>
           <select id="kiri-part" class="text"></select></label>
@@ -510,6 +508,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
     <div class="bar" role="region" aria-label="Summary and download">
       <dl id="stats" class="stats"></dl>
       <div class="actions">
+        <label class="kit-check" for="opt-kit" title="About 100 g: a rail with five groove pieces and a drawer opening with three drawer slices. Print it first; the piece that fits best tells you how to adjust the clearances under 3 Print > Advanced."><input type="checkbox" id="opt-kit"><span><span class="kit-long">Include the </span>fit test kit</span></label>
         <button type="button" id="btn-copy" class="btn quiet" title="Copy parts list"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg><span class="btn-text">Copy parts list</span></button>
         <button type="button" id="btn-zip" class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span id="zip-label">Download print files</span></button>
       </div>
@@ -519,9 +518,9 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
     <div id="view-wrap" class="stage">
       <canvas id="view" tabindex="0" role="img" aria-label="3D preview of the drawer wall. Arrow keys turn it, plus and minus zoom."></canvas>
       <div class="view-tools">
-        <button type="button" id="btn-open" class="btn" title="Open or close all drawers"><svg class="ic" aria-hidden="true"><use href="#i-drawer"/></svg><span>Open all drawers</span></button>
-        <button type="button" id="btn-dims" class="btn" aria-pressed="true" title="Show or hide the overall dimensions"><svg class="ic" aria-hidden="true"><use href="#i-ruler"/></svg><span>Hide dimensions</span></button>
-        <button type="button" id="btn-view" class="btn" title="Reset view"><svg class="ic" aria-hidden="true"><use href="#i-frame"/></svg><span class="view-label">Reset view</span></button>
+        <button type="button" id="btn-open" class="btn icon" aria-pressed="false" title="Open all drawers" aria-label="Open all drawers"><svg class="ic" aria-hidden="true"><use href="#i-drawers-out"/></svg></button>
+        <button type="button" id="btn-dims" class="btn icon" aria-pressed="true" title="Hide dimensions" aria-label="Hide dimensions"><svg class="ic" aria-hidden="true"><use href="#i-ruler"/></svg></button>
+        <button type="button" id="btn-view" class="btn icon" title="Reset view" aria-label="Reset view"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg></button>
       </div>
       <p id="view-hint">Drag to turn · scroll or pinch to zoom · shift-drag to move · click a drawer to open it</p>
       <div id="dims" class="dims" aria-hidden="true"><span id="dim-w"></span><span id="dim-h"></span><span id="dim-d"></span></div>
@@ -558,11 +557,6 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
     </section>
   </div>
 
-  <footer class="foot">
-    <div><h2>What you get</h2><p>A ZIP with one STL per part, the assembled wall as one model, a parts list (CSV) and print notes. Files are made in your browser; nothing is uploaded.</p></div>
-    <div><h2>Assumes</h2><p>A 256 mm bed, 0.4 mm nozzle, 0.20 mm layers, PLA or PETG. Long panels are split to fit the bed.</p></div>
-    <div><h2>More</h2><p>Mechanism, print settings and troubleshooting are in the <a href="__GUIDE_URL__" target="_blank" rel="noopener">build guide</a>.</p></div>
-  </footer>
 </main>
 <script>var WASM_B64 = "__WASM_B64__";</script>
 <script type="module">
