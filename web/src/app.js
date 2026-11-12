@@ -37,12 +37,13 @@ const EXAMPLE = () => ({
     { m: 2, h: 2, across: 2, deep: 2, labelL: '', labelR: '' },
   ],
   style: 'fixed',                           // 'fixed' printed-in walls | 'removable' dividers
-  finish: { top: 'labeled', sides: 'minimal', bottom: 'legs', legStyle: 'tapered', legH: 15,
+  finish: { top: 'labeled', sides: 'minimal', bottom: 'plate', legStyle: 'tapered', legH: 7.5,
     rodShape: 'round', rodD: 6,
     labelMode: 'title',                     // 'title' one text per panel | 'each' per column (top) and per row (sides)
     lettering: 'engraved',                  // 'engraved' pressed in | 'raised'
     tilt: false,                            // top labels on a 45 deg strip along the front edge
-    pieces: 'long',                         // 'long' as long as the bed allows | 'each' one per column / row
+    // printed pieces per panel group: 'long' as long as the bed allows | 'each' one per column (top, bottom) or row (sides)
+    pieces_top: 'long', pieces_sides: 'long', pieces_bottom: 'long',
     topLabel: 'Workshop', leftLabel: '', rightLabel: '', colLabels: [] },
   testKit: true, showDims: true,
   caseColor: CASE_COLORS[0][1], drawerColor: DRAWER_COLORS[0][1],
@@ -55,9 +56,11 @@ try {
   if (saved && Array.isArray(saved.rows) && saved.rows.length) {
     // the default leg height went from 40 to 15 mm: move designs still on the old default
     if (!saved.legs15 && saved.finish && saved.finish.legH === 40) saved.finish.legH = 15;
+    // legs became optional and lower by default: designs still on the old default lose them
+    if (!saved.legs75 && saved.finish && saved.finish.bottom === 'legs' && saved.finish.legH === 15) { saved.finish.bottom = 'plate'; saved.finish.legH = 7.5; }
     state = { ...state, ...saved };
   }
-  state.legs15 = true;
+  state.legs15 = true; state.legs75 = true;
 } catch { /* storage unavailable: start from the example */ }
 
 const $ = (id) => document.getElementById(id);
@@ -93,14 +96,15 @@ function normalize() {
   if (!PANEL_STYLES.includes(f.sides)) f.sides = 'minimal';
   if (!['none', 'plate', 'legs'].includes(f.bottom)) f.bottom = 'plate';
   if (!['straight', 'tapered', 'plinth'].includes(f.legStyle)) f.legStyle = 'tapered';
-  f.legH = clamp(Math.round((Number(f.legH) || 15) / 5) * 5, 10, 120);
+  f.legH = clamp(Math.round((Number(f.legH) || 7.5) / 2.5) * 2.5, 5, 120);
   delete f.rod;
   if (!['round', 'square'].includes(f.rodShape)) f.rodShape = 'round';
   f.rodD = clamp(Math.round((Number(f.rodD) || 6) * 2) / 2, Kn.ROD_MIN, Kn.ROD_MAX);
   if (!['title', 'each'].includes(f.labelMode)) f.labelMode = 'title';
   if (!['engraved', 'raised'].includes(f.lettering)) f.lettering = 'engraved';
   f.tilt = !!f.tilt;
-  if (!['long', 'each'].includes(f.pieces)) f.pieces = 'long';
+  for (const k of ['top', 'sides', 'bottom']) if (!['long', 'each'].includes(f[`pieces_${k}`])) f[`pieces_${k}`] = f.pieces === 'each' ? 'each' : 'long';
+  delete f.pieces;
   for (const k of ['topLabel', 'leftLabel', 'rightLabel']) f[k] = String(f[k] || '').slice(0, 24);
   f.colLabels = Array.from({ length: s.cols }, (_, i) => String((f.colLabels || [])[i] || '').slice(0, 12));
   const p = params(), mx = Kn.maxUnits(p);
@@ -201,7 +205,7 @@ function finishLayout(p, H) {
   const each = f.labelMode === 'each';
 
   if (f.top !== 'none') {
-    const segs = pieces(Array(state.cols).fill(1), U, g, ext, ext, f.pieces), mid = state.cols / 2;
+    const segs = pieces(Array(state.cols).fill(1), U, g, ext, ext, f.pieces_top), mid = state.cols / 2;
     const titleSeg = segs.find((sg) => sg.start < mid && mid <= sg.start + sg.n) || segs[0];
     for (const sg of segs) {
       const labels = [];
@@ -224,7 +228,7 @@ function finishLayout(p, H) {
   if (f.sides !== 'none') {
     // rows from the bottom up, so pieces break between rows
     const order = [...state.rows.keys()].reverse(), cells = order.map((ri) => state.rows[ri].h);
-    const segs = pieces(cells, V, g, 0, 0, f.pieces), mid = H / 2;
+    const segs = pieces(cells, V, g, 0, 0, f.pieces_sides), mid = H / 2;
     const titleSeg = segs.find((sg) => sg.start < mid && mid <= sg.start + sg.n) || segs[0];
     for (const side of ['left', 'right']) for (const sg of segs) {
       const labels = [];
@@ -250,9 +254,9 @@ function finishLayout(p, H) {
   }
   if (f.bottom !== 'none') {
     const legs = f.bottom === 'legs' ? { style: f.legStyle, h: f.legH } : null;
-    for (const sg of pieces(Array(state.cols).fill(1), U, g, ext, ext, f.pieces)) {
+    for (const sg of pieces(Array(state.cols).fill(1), U, g, ext, ext, f.pieces_bottom)) {
       const opt = { side: 'bottom', n: sg.n, style: f.bottom, legs, extLo: sg.extLo, extHi: sg.extHi };
-      const key = `bottom_${legs ? `${legs.style}${legs.h}` : 'plate'}_${sg.n}w${sg.extLo ? '_L' : ''}${sg.extHi ? '_R' : ''}`;
+      const key = `bottom_${legs ? `${legs.style}${String(legs.h).replace(".", "p")}` : 'plate'}_${sg.n}w${sg.extLo ? '_L' : ''}${sg.extHi ? '_R' : ''}`;
       panels.push({ key, x: sg.start * U, y: 0, def: { kind: 'panel', opt, pose: Kn.panelPose('bottom', f.bottom),
         label: legs ? `Base with ${legs.style} legs, ${legs.h} mm, ${sg.n} wide` : `Base plate, ${sg.n} wide` } });
     }
@@ -599,7 +603,7 @@ const rowNo = (ri) => state.rows.length - ri;
 function renderRows(m) {
   const { p, mx } = m, U = p.unit_w, V = p.unit_h, n = state.rows.length;
   const maxM = Math.min(mx.w, state.cols), maxH = Math.min(3, mx.h), maxD = Kn.maxDeep(p);
-  const order = [...state.rows.keys()].reverse();
+  const order = [...state.rows.keys()];                  // top row first, as on the wall
   $('rows').innerHTML = order.map((i) => {
     const r = state.rows[i], k = rowNo(i);
     const widths = rowWidths(state.cols, r.m);
@@ -696,11 +700,8 @@ function renderControls(m) {
   $('rod-field').hidden = f.top !== 'structural' && f.sides !== 'structural';
   if (document.activeElement !== $('fin-rodD')) $('fin-rodD').value = f.rodD;
   $('rod-hint').textContent = `${f.rodShape === 'round' ? 'Diameter' : 'Width across the flats'}, ${Kn.ROD_MIN} to ${Kn.ROD_MAX} mm. Each channel is ${fmt(f.rodD + 2 * Kn.ROD_FIT)} mm${f.rodShape === 'square' ? ' square' : ''} (0.3 mm clearance), and two rods run through each structural panel, closed with printed end plugs. Cut lengths are in the parts list.`;
-  $('pieces-section').hidden = f.top === 'none' && f.sides === 'none' && f.bottom === 'none';
-  $('pieces-hint').textContent = f.pieces === 'each'
-    ? 'Every column and every row gets its own panel piece: easier to rearrange, more joins.'
-    : `Panels are split only where they would not fit a ${BED} mm bed, and always between rows or columns.`;
-  $('leg-out').textContent = `${f.legH} mm`; $('leg-down').disabled = f.legH <= 10; $('leg-up').disabled = f.legH >= 120;
+  for (const k of ['top', 'sides', 'bottom']) $(`pieces-${k}-field`).hidden = f[k] === 'none';
+  $('leg-out').textContent = `${fmt(f.legH)} mm`; $('leg-down').disabled = f.legH <= 5; $('leg-up').disabled = f.legH >= 120;
   const sw = (list, cur, kind) => list.map(([name, hex]) =>
     `<button type="button" class="swatch${hex === 'clear' ? ' clear' : ''}" data-color="${kind}" data-v="${hex}" data-fid="${kind}${hex}" aria-pressed="${hex === cur}" aria-label="${name}" title="${name}" style="--sw:${hex === 'clear' ? 'transparent' : hex}"></button>`).join('');
   $('case-colors').innerHTML = sw(CASE_COLORS, state.caseColor, 'case');
@@ -739,7 +740,7 @@ function renderLabelInputs(topL, sideL) {
       if (topL) html.push(`<div class="field"><span class="field-label">Top, one label per column, left to right</span><div class="label-grid cols">${
         Array.from({ length: state.cols }, (_, c) => input(`lab-col-${c}`, `Column ${c + 1} label`, 12, `Column ${c + 1}`)).join('')}</div></div>`);
       if (sideL) html.push(`<div class="field"><span class="field-label">Sides, one label per row</span><div class="label-grid"><span></span><span class="head">Left</span><span class="head">Right</span>${
-        [...state.rows.keys()].reverse().map((ri) => `<span class="k">Row ${rowNo(ri)}</span>${input(`lab-l-${ri}`, `Row ${rowNo(ri)} left label`, 16)}${input(`lab-r-${ri}`, `Row ${rowNo(ri)} right label`, 16)}`).join('')}</div></div>`);
+        [...state.rows.keys()].map((ri) => `<span class="k">Row ${rowNo(ri)}</span>${input(`lab-l-${ri}`, `Row ${rowNo(ri)} left label`, 16)}${input(`lab-r-${ri}`, `Row ${rowNo(ri)} right label`, 16)}`).join('')}</div></div>`);
     }
     box.innerHTML = html.join('');
   }
@@ -821,7 +822,7 @@ function bind() {
   $('cols-up').onclick = () => { state.cols++; update(); };
   $('add-row').onclick = () => {
     state.rows.unshift({ ...state.rows[0], labelL: '', labelR: '' }); update();
-    const li = document.querySelector('#rows .row:last-child'); if (li) li.scrollIntoView({ block: 'nearest', behavior: REDUCED.matches ? 'auto' : 'smooth' });
+    const li = document.querySelector('#rows .row:first-child'); if (li) li.scrollIntoView({ block: 'nearest', behavior: REDUCED.matches ? 'auto' : 'smooth' });
     setActiveRow(0);
     setStatus(`Row ${state.rows.length} added on top, a copy of the row below it.`, 'good');
   };
@@ -866,8 +867,8 @@ function bind() {
   for (const b of document.querySelectorAll('[data-fin]')) b.onclick = () => {
     const v = b.dataset.v; state.finish[b.dataset.fin] = v === 'true' ? true : v === 'false' ? false : v; update();
   };
-  $('leg-down').onclick = () => { state.finish.legH -= 5; update(); };
-  $('leg-up').onclick = () => { state.finish.legH += 5; update(); };
+  $('leg-down').onclick = () => { state.finish.legH -= 2.5; update(); };
+  $('leg-up').onclick = () => { state.finish.legH += 2.5; update(); };
   $('opt-kit').onchange = (e) => { state.testKit = e.target.checked; update(); };
   document.addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-color]'); if (!b) return;

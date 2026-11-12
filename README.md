@@ -29,7 +29,7 @@ without supports on a 256 mm bed.
 
 | | |
 | --- | --- |
-| ![Rows, built from the bottom up](docs/images/builder_rows.png) | ![Labels per column and row, raised, on a tilted strip](docs/images/builder_labels.png) |
+| ![Rows, listed top row first](docs/images/builder_rows.png) | ![Labels per column and row, raised, on a tilted strip](docs/images/builder_labels.png) |
 
 ## Print it
 

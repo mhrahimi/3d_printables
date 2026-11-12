@@ -11,6 +11,9 @@
 - New tests: whole walls checked part against part (drawers closed and at their stops), and
   every insertion path swept to map contact.
 - [Where the numbers come from](docs/sources.md): the research behind the design choices.
+- Rows are listed top row first, as on the wall (still numbered from the bottom).
+- Legs are off by default (base plate); when on they start at 7.5 mm, adjustable 5–120 mm.
+- Panel pieces are chosen separately for the top, the sides and the bottom.
 
 ## 1.0.0 — 2026-11-12
 

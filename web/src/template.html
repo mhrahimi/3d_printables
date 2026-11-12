@@ -179,7 +179,7 @@ button:disabled { cursor: not-allowed; color: var(--graphite); opacity: 0.45; }
 .sketch .pull { fill: currentColor; }
 .sketch .wall { stroke: currentColor; stroke-width: 1; stroke-dasharray: 3 2; }
 .row-note { font-size: var(--fs--1); color: var(--graphite); }
-.add-row { margin-top: var(--s2); }
+.add-row { margin: var(--s1) 0 var(--s2); }
 
 /* advanced */
 details > summary { cursor: pointer; font-weight: 600; min-height: var(--hit); display: flex; align-items: center; gap: var(--s2); list-style: none; }
@@ -348,13 +348,13 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
       </div>
 
       <div class="section">
-        <div class="section-head"><h2>Rows</h2><p>Built from the bottom up</p></div>
+        <div class="section-head"><h2>Rows</h2><p>Top row first, numbered from the bottom</p></div>
         <div class="where" id="where">
           <svg id="elev" class="elev" role="img" aria-labelledby="where-text"></svg>
           <p id="where-text" class="where-text" aria-live="polite"></p>
         </div>
-        <ol id="rows"></ol>
         <button type="button" id="add-row" class="btn wide add-row"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add a row on top</button>
+        <ol id="rows"></ol>
       </div>
 
       <div class="section">
@@ -378,12 +378,20 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
         <div class="seg" role="group" aria-labelledby="h-top">
           <button type="button" data-fin="top" data-v="none" data-fid="top-none">None</button><button type="button" data-fin="top" data-v="minimal" data-fid="top-minimal">Minimal</button><button type="button" data-fin="top" data-v="labeled" data-fid="top-labeled">Labelled</button><button type="button" data-fin="top" data-v="structural" data-fid="top-structural">Structural</button>
         </div>
+        <div class="field" id="pieces-top-field"><span class="field-label" id="l-pc-top">Pieces</span>
+          <div class="seg" role="group" aria-labelledby="l-pc-top">
+            <button type="button" data-fin="pieces_top" data-v="long" data-fid="pc-top-long">As long as the bed allows</button><button type="button" data-fin="pieces_top" data-v="each" data-fid="pc-top-each">One per column</button>
+          </div></div>
       </div>
       <div class="section">
         <div class="section-head"><h2 id="h-sides">Sides</h2><p>Cover the side rails</p></div>
         <div class="seg" role="group" aria-labelledby="h-sides">
           <button type="button" data-fin="sides" data-v="none" data-fid="sides-none">None</button><button type="button" data-fin="sides" data-v="minimal" data-fid="sides-minimal">Minimal</button><button type="button" data-fin="sides" data-v="labeled" data-fid="sides-labeled">Labelled</button><button type="button" data-fin="sides" data-v="structural" data-fid="sides-structural">Structural</button>
         </div>
+        <div class="field" id="pieces-sides-field"><span class="field-label" id="l-pc-sides">Pieces</span>
+          <div class="seg" role="group" aria-labelledby="l-pc-sides">
+            <button type="button" data-fin="pieces_sides" data-v="long" data-fid="pc-sides-long">As long as the bed allows</button><button type="button" data-fin="pieces_sides" data-v="each" data-fid="pc-sides-each">One per row</button>
+          </div></div>
       </div>
       <div class="section" id="labels-section">
         <div class="section-head"><h2 id="h-labels">Labels</h2><p>Letters, numbers, - + / &amp; #</p></div>
@@ -413,18 +421,15 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
         </div>
         <p class="hint" id="rod-hint"></p>
       </div>
-      <div class="section" id="pieces-section">
-        <div class="section-head"><h2 id="h-pieces">Panel pieces</h2></div>
-        <div class="seg" role="group" aria-labelledby="h-pieces">
-          <button type="button" data-fin="pieces" data-v="long" data-fid="pieces-long">As long as the bed allows</button><button type="button" data-fin="pieces" data-v="each" data-fid="pieces-each">One per column and row</button>
-        </div>
-        <p class="hint" id="pieces-hint"></p>
-      </div>
       <div class="section">
         <div class="section-head"><h2 id="h-bottom">Bottom</h2><p>What the wall stands on</p></div>
         <div class="seg" role="group" aria-labelledby="h-bottom">
           <button type="button" data-fin="bottom" data-v="none" data-fid="bottom-none">None</button><button type="button" data-fin="bottom" data-v="plate" data-fid="bottom-plate">Base plate</button><button type="button" data-fin="bottom" data-v="legs" data-fid="bottom-legs">Legs</button>
         </div>
+        <div class="field" id="pieces-bottom-field"><span class="field-label" id="l-pc-bottom">Pieces</span>
+          <div class="seg" role="group" aria-labelledby="l-pc-bottom">
+            <button type="button" data-fin="pieces_bottom" data-v="long" data-fid="pc-bottom-long">As long as the bed allows</button><button type="button" data-fin="pieces_bottom" data-v="each" data-fid="pc-bottom-each">One per column</button>
+          </div></div>
         <div id="legs-fields" class="field-stack">
           <div class="field"><span class="field-label" id="l-legstyle">Leg style</span>
             <div class="seg" role="group" aria-labelledby="l-legstyle">
@@ -432,7 +437,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
             </div></div>
           <div class="field"><span class="field-label" id="l-legh">Leg height</span>
             <div class="stepper" role="group" aria-labelledby="l-legh">
-              <button type="button" id="leg-down" aria-label="Legs 5 mm shorter"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button><output id="leg-out">15 mm</output><button type="button" id="leg-up" aria-label="Legs 5 mm taller"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
+              <button type="button" id="leg-down" aria-label="Legs 2.5 mm shorter"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button><output id="leg-out">7.5 mm</output><button type="button" id="leg-up" aria-label="Legs 2.5 mm taller"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
             </div></div>
         </div>
       </div>

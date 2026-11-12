@@ -103,7 +103,7 @@ for (const [si, over] of sets.entries()) {
         }
         top.delete(); top0.delete();
       }
-      for (const legs of [null, { style: 'straight', h: 40 }, { style: 'tapered', h: 60 }, { style: 'plinth', h: 30 }, { style: 'tapered', h: 120 }, { style: 'straight', h: 10 }]) {
+      for (const legs of [null, { style: 'straight', h: 40 }, { style: 'tapered', h: 60 }, { style: 'plinth', h: 30 }, { style: 'tapered', h: 120 }, { style: 'straight', h: 10 }, { style: 'tapered', h: 7.5 }, { style: 'plinth', h: 5 }]) {
         const b0 = K.panel(p, { side: 'bottom', n: 2, style: legs ? 'legs' : 'plate', legs, extLo: ext, extHi: ext });
         const bn = `bottom ${legs ? legs.style + legs.h : 'plate'} under ${name}`;
         solidOK(bn, b0, Kn.panelPose('bottom', legs ? 'legs' : 'plate'), first && rod.d === 6 && sideStyle === 'minimal' ? `bottom_${legs ? legs.style + legs.h : 'plate'}` : null);
