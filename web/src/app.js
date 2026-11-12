@@ -760,7 +760,7 @@ function renderParts(m) {
   ].map(([v, l]) => `<div><dt>${l}</dt><dd>${v}</dd></div>`).join('');
   $('zip-label').innerHTML = `Download ${m.parts.length} <span class="zip-ext">part </span>files<span class="zip-ext"> (.zip)</span>`;
   $('parts-body').innerHTML = m.parts.map((d) => `<tr>
-      <td><span class="dot ${d.kind === 'case' || d.kind === 'panel' || d.kind === 'plug' ? 'dot-case' : 'dot-drawer'}"></span>${esc(d.label)}<span class="file">${d.qty}x_${d.key}.stl</span></td>
+      <td><span class="dot ${d.kind === 'case' || d.kind === 'panel' || d.kind === 'plug' ? 'dot-case' : 'dot-drawer'}"></span>${esc(d.label)}<span class="file">${d.qty}x_${d.key}.stl · <button type="button" class="kiri-one" data-kiri="${esc(d.key)}" aria-label="Open ${esc(d.label)} in Kiri:Moto">Kiri:Moto</button></span></td>
       <td class="num qty" aria-label="Quantity ${d.qty}">${d.qty}</td>
       <td class="num" data-label="Print size">${fmt(d.size[0])} × ${fmt(d.size[1])} × ${fmt(d.size[2])} mm</td>
       <td class="num" data-label="Each">${Math.round(d.grams)} g</td>
@@ -895,6 +895,58 @@ function bind() {
   $('btn-dims').onclick = () => { state.showDims = !state.showDims; syncDims(); try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* not saved */ } };
   $('btn-zip').onclick = downloadZip;
   $('btn-copy').onclick = copyList;
+  $('btn-kiri').onclick = () => openKiri(null);
+  $('parts-body').addEventListener('click', (e) => { const b = e.target.closest('[data-kiri]'); if (b) openKiri(b.dataset.kiri); });
+  $('kiri-close').onclick = () => $('kiri-dlg').close();
+  $('kiri-resend').onclick = () => sendKiri(true);
+}
+
+
+// ---------------------------------------------------------------- Kiri:Moto
+// Grid.Space's browser slicer, embedded in an iframe and fed through its frame
+// message API (grid-apps src/kiri/run/frame.js): {mode}, {clear}, {parse, type}.
+const KIRI = { url: 'https://grid.space/kiri/', origin: 'https://grid.space' };
+let kiriJob = null, kiriReady = null;
+
+/** Kiri:Moto reads binary STL through a Float32Array, so the byte count must be
+ *  a multiple of 4: pad an odd triangle count with one zero-area triangle. */
+function kiriStl(bytes) {
+  const n = new DataView(bytes.buffer, bytes.byteOffset).getUint32(80, true);
+  if (n % 2 === 0) return bytes.slice().buffer;
+  const out = new Uint8Array(bytes.byteLength + 50);
+  out.set(bytes);
+  new DataView(out.buffer).setUint32(80, n + 1, true);
+  return out.buffer;
+}
+
+function openKiri(key) {
+  if (!model) return;
+  const parts = key ? model.parts.filter((d) => d.key === key) : model.parts;
+  if (!parts.length) return;
+  kiriJob = parts;
+  $('kiri-what').textContent = key ? `· ${parts[0].label}`
+    : `· one of each of the ${parts.length} parts (copy them in Kiri:Moto for the quantities in the list)`;
+  const dlg = $('kiri-dlg'), fr = $('kiri-frame');
+  if (!dlg.open) dlg.showModal();
+  if (!kiriReady) {
+    // no reliable "ready" reply from the frame: send once it has loaded and settled
+    kiriReady = new Promise((res) => { fr.addEventListener('load', () => setTimeout(res, 1500), { once: true }); });
+    fr.src = KIRI.url;
+  }
+  kiriReady.then(() => sendKiri(true));
+}
+
+function sendKiri(clear) {
+  const win = $('kiri-frame').contentWindow;
+  if (!win || !kiriJob) return;
+  const post = (msg, xfer) => win.postMessage(msg, KIRI.origin, xfer);
+  post({ mode: 'FDM' });
+  if (clear) post({ clear: true });
+  for (const d of kiriJob) {
+    const ab = kiriStl(Kn.stlBytes(d.entry.print));
+    post({ parse: ab, type: 'stl' }, [ab]);
+  }
+  setStatus(`Sent ${kiriJob.length === 1 ? kiriJob[0].label : `${kiriJob.length} parts`} to Kiri:Moto. If the bed stays empty, press Send again.`);
 }
 
 // ---------------------------------------------------------------- export

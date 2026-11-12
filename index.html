@@ -246,6 +246,18 @@ details[open] > summary .ic { transform: rotate(90deg); }
 .parts { padding: var(--s5) clamp(var(--s4), 3vw, var(--s6)) var(--s6); display: grid; gap: var(--s4); background: var(--sheet); }
 .parts-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s2) var(--s4); }
 .parts-head p { color: var(--graphite); }
+.kiri-all { font-size: var(--fs--1); margin-left: auto; }
+.kiri-one { font: inherit; color: var(--graphite); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.kiri-one:hover { color: var(--ink); }
+.kiri-dlg { width: min(1400px, 96vw); height: 92vh; max-width: none; max-height: none; padding: 0; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); }
+.kiri-dlg[open] { display: flex; flex-direction: column; }
+.kiri-dlg::backdrop { background: rgb(0 0 0 / .45); }
+.kiri-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2) var(--s4); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--rule); }
+.kiri-head p { margin: 0; }
+.kiri-note { flex: 1 1 22rem; font-size: var(--fs--1); color: var(--graphite); }
+.kiri-acts { display: flex; gap: var(--s2); margin-left: auto; }
+#kiri-frame { flex: 1; width: 100%; border: 0; background: #fff; }
+
 table { border-collapse: collapse; width: 100%; }
 caption { text-align: left; font: 600 var(--fs-1)/1.2 var(--font-display); padding-bottom: var(--s2); }
 th, td { text-align: left; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--rule); vertical-align: baseline; }
@@ -314,6 +326,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
   <symbol id="i-down" viewBox="0 0 20 20"><path d="M10 5v10M5.5 10.5 10 15l4.5-4.5"/></symbol>
   <symbol id="i-dup" viewBox="0 0 20 20"><rect x="6.5" y="6.5" width="9" height="9" rx="1"/><path d="M4 12.5V5a1 1 0 0 1 1-1h7.5"/></symbol>
   <symbol id="i-trash" viewBox="0 0 20 20"><path d="M4 6h12M8 6V4.5h4V6M6 6l.7 9.5h6.6L14 6"/></symbol>
+  <symbol id="i-slice" viewBox="0 0 20 20"><path d="M4 15.5h12M4 12.5h12M6 9.5h8M8 6.5h4M10 3.5v0"/></symbol>
   <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 3.5v9M6 8.5l4 4 4-4M4 16h12"/></symbol>
   <symbol id="i-list" viewBox="0 0 20 20"><path d="M7.5 5.5h8.5M7.5 10h8.5M7.5 14.5h8.5M4 5.5h.01M4 10h.01M4 14.5h.01"/></symbol>
   <symbol id="i-frame" viewBox="0 0 20 20"><path d="M4 7.5V4h3.5M12.5 4H16v3.5M16 12.5V16h-3.5M7.5 16H4v-3.5"/></symbol>
@@ -517,6 +530,7 @@ tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink);
       <div class="parts-head">
         <h2 id="h-parts">Parts to print</h2>
         <p>One STL per part, already in print orientation, quantity in the file name.</p>
+        <button type="button" id="btn-kiri" class="btn quiet kiri-all" title="Slice these parts in your browser with Kiri:Moto, a free slicer"><svg class="ic" aria-hidden="true"><use href="#i-slice"/></svg><span>Open all in Kiri:Moto</span></button>
       </div>
       <table id="parts-table">
         <thead><tr><th scope="col">Part and file</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Print size (mm)</th><th scope="col" class="num">Each (g)</th><th scope="col" class="num">Total (g)</th></tr></thead>
@@ -2367,7 +2381,7 @@ function renderParts(m) {
   ].map(([v, l]) => `<div><dt>${l}</dt><dd>${v}</dd></div>`).join('');
   $('zip-label').innerHTML = `Download ${m.parts.length} <span class="zip-ext">part </span>files<span class="zip-ext"> (.zip)</span>`;
   $('parts-body').innerHTML = m.parts.map((d) => `<tr>
-      <td><span class="dot ${d.kind === 'case' || d.kind === 'panel' || d.kind === 'plug' ? 'dot-case' : 'dot-drawer'}"></span>${esc(d.label)}<span class="file">${d.qty}x_${d.key}.stl</span></td>
+      <td><span class="dot ${d.kind === 'case' || d.kind === 'panel' || d.kind === 'plug' ? 'dot-case' : 'dot-drawer'}"></span>${esc(d.label)}<span class="file">${d.qty}x_${d.key}.stl · <button type="button" class="kiri-one" data-kiri="${esc(d.key)}" aria-label="Open ${esc(d.label)} in Kiri:Moto">Kiri:Moto</button></span></td>
       <td class="num qty" aria-label="Quantity ${d.qty}">${d.qty}</td>
       <td class="num" data-label="Print size">${fmt(d.size[0])} × ${fmt(d.size[1])} × ${fmt(d.size[2])} mm</td>
       <td class="num" data-label="Each">${Math.round(d.grams)} g</td>
@@ -2502,6 +2516,58 @@ function bind() {
   $('btn-dims').onclick = () => { state.showDims = !state.showDims; syncDims(); try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* not saved */ } };
   $('btn-zip').onclick = downloadZip;
   $('btn-copy').onclick = copyList;
+  $('btn-kiri').onclick = () => openKiri(null);
+  $('parts-body').addEventListener('click', (e) => { const b = e.target.closest('[data-kiri]'); if (b) openKiri(b.dataset.kiri); });
+  $('kiri-close').onclick = () => $('kiri-dlg').close();
+  $('kiri-resend').onclick = () => sendKiri(true);
+}
+
+
+// ---------------------------------------------------------------- Kiri:Moto
+// Grid.Space's browser slicer, embedded in an iframe and fed through its frame
+// message API (grid-apps src/kiri/run/frame.js): {mode}, {clear}, {parse, type}.
+const KIRI = { url: 'https://grid.space/kiri/', origin: 'https://grid.space' };
+let kiriJob = null, kiriReady = null;
+
+/** Kiri:Moto reads binary STL through a Float32Array, so the byte count must be
+ *  a multiple of 4: pad an odd triangle count with one zero-area triangle. */
+function kiriStl(bytes) {
+  const n = new DataView(bytes.buffer, bytes.byteOffset).getUint32(80, true);
+  if (n % 2 === 0) return bytes.slice().buffer;
+  const out = new Uint8Array(bytes.byteLength + 50);
+  out.set(bytes);
+  new DataView(out.buffer).setUint32(80, n + 1, true);
+  return out.buffer;
+}
+
+function openKiri(key) {
+  if (!model) return;
+  const parts = key ? model.parts.filter((d) => d.key === key) : model.parts;
+  if (!parts.length) return;
+  kiriJob = parts;
+  $('kiri-what').textContent = key ? `· ${parts[0].label}`
+    : `· one of each of the ${parts.length} parts (copy them in Kiri:Moto for the quantities in the list)`;
+  const dlg = $('kiri-dlg'), fr = $('kiri-frame');
+  if (!dlg.open) dlg.showModal();
+  if (!kiriReady) {
+    // no reliable "ready" reply from the frame: send once it has loaded and settled
+    kiriReady = new Promise((res) => { fr.addEventListener('load', () => setTimeout(res, 1500), { once: true }); });
+    fr.src = KIRI.url;
+  }
+  kiriReady.then(() => sendKiri(true));
+}
+
+function sendKiri(clear) {
+  const win = $('kiri-frame').contentWindow;
+  if (!win || !kiriJob) return;
+  const post = (msg, xfer) => win.postMessage(msg, KIRI.origin, xfer);
+  post({ mode: 'FDM' });
+  if (clear) post({ clear: true });
+  for (const d of kiriJob) {
+    const ab = kiriStl(Kn.stlBytes(d.entry.print));
+    post({ parse: ab, type: 'stl' }, [ab]);
+  }
+  setStatus(`Sent ${kiriJob.length === 1 ? kiriJob[0].label : `${kiriJob.length} parts`} to Kiri:Moto. If the bed stays empty, press Send again.`);
 }
 
 // ---------------------------------------------------------------- export
@@ -2672,5 +2738,16 @@ async function start() {
 start();
 
 </script>
+<dialog id="kiri-dlg" class="kiri-dlg" aria-labelledby="kiri-title">
+  <div class="kiri-head">
+    <p id="kiri-title"><strong>Kiri:Moto</strong> <span id="kiri-what"></span></p>
+    <p class="kiri-note">A free browser slicer by <a href="https://grid.space/kiri/" target="_blank" rel="noopener">Grid.Space</a>. The parts go straight from this page into it; nothing is uploaded. Pick your printer under Setup, then Slice.</p>
+    <div class="kiri-acts">
+      <button type="button" id="kiri-resend" class="btn">Send again</button>
+      <button type="button" id="kiri-close" class="btn primary">Close</button>
+    </div>
+  </div>
+  <iframe id="kiri-frame" title="Kiri:Moto slicer" allow="fullscreen; clipboard-write"></iframe>
+</dialog>
 </body>
 </html>
