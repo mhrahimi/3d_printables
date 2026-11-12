@@ -7,7 +7,7 @@ without supports on a 256 mm bed.
 
 ![The drawer wall builder](docs/images/builder.png)
 
-**[Open the builder](https://mhrahimi.github.io/3D_printable_storage_maker/)** ·
+**[Open the builder](https://mhrahimi.github.io/3d_printables/)** ·
 **[Build guide](docs/build-guide.md)** · [Reference models](models/README.md) · [Changelog](CHANGELOG.md)
 
 ## What it does
@@ -79,8 +79,8 @@ python -m drawer_system.validate                 # 54 fit and motion checks
 1. Push this repository to GitHub.
 2. Go to **Settings → Pages**. Under *Build and deployment*, choose **Deploy from a branch**,
    branch **main**, folder **/ (root)**, then **Save**.
-3. After a minute the builder is live at <https://mhrahimi.github.io/3D_printable_storage_maker/>,
-   and the build guide at <https://mhrahimi.github.io/3D_printable_storage_maker/docs/build-guide.html>.
+3. After a minute the builder is live at <https://mhrahimi.github.io/3d_printables/>,
+   and the build guide at <https://mhrahimi.github.io/3d_printables/docs/build-guide.html>.
 
 After changing anything in `web/`, run `npm run build` and commit the new `index.html`. CI
 fails if it is out of date.

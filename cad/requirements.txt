@@ -1,0 +1,8 @@
+cadquery>=2.4
+trimesh>=4.0
+shapely>=2.0
+manifold3d
+rtree
+scipy
+vtk
+Pillow

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drawer Wall Builder</title>
+<meta name="description" content="Plan a wall of interlocking 3D-printed drawers, check it in 3D, and download one print-ready STL per part.">
+<style>
+/*__FONTS__*/
+/* Drawer Wall Builder
+   Spec: Barlow Condensed (display) + Source Sans 3 (body), 1.2 type scale from 16 px,
+   4 px spacing steps, six colour roles, rules and whitespace instead of cards.
+   Signal (cyan) marks the one primary action and the highlighted row, nothing else. */
+:root {
+  /* colour roles */
+  --paper: #F1F3F4;        /* page */
+  --sheet: #FFFFFF;        /* working surfaces: controls, table */
+  --ink: #0F2340;          /* text, selected state */
+  --graphite: #4A5866;     /* secondary text */
+  --rule: #C9D2D9;         /* hairlines */
+  --line: #7D8B97;         /* control borders (3:1 on sheet) */
+  --signal: #5AE8D3;       /* primary action fill, highlighted row */
+  --signal-ink: #0F2340;
+  --ok: #17663F;
+  --err: #B42318;
+  --stage: #E3E8EB;
+  --grid: rgba(15, 35, 64, 0.07);
+  --hover: rgba(15, 35, 64, 0.06);
+  --case-color: #12325c;
+  --drawer-color: #5ae8d3;
+
+  /* type */
+  --font-display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --font-body: "Source Sans 3", "Source Sans Pro", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  --fs--1: 0.833rem;  /* 13.3 */
+  --fs-0: 1rem;       /* 16 */
+  --fs-1: 1.2rem;     /* 19.2 */
+  --fs-2: 1.44rem;    /* 23 */
+  --fs-3: 1.728rem;   /* 27.6 */
+  --fs-4: 2.074rem;   /* 33.2 */
+  --measure: 70ch;
+
+  /* space, size, shape */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --hit: 44px;
+  --radius: 3px;
+  --col: 404px;
+  --bar-h: 72px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0D151E; --sheet: #141F2A; --ink: #E6EDF2; --graphite: #A6B3BF; --rule: #2B3948; --line: #6E7F8F;
+    --signal: #5AE8D3; --signal-ink: #0F2340; --ok: #72D3A2; --err: #FF9C90; --stage: #101A24;
+    --grid: rgba(230, 237, 242, 0.06); --hover: rgba(230, 237, 242, 0.07);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--fs-0)/1.5 var(--font-body); }
+h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 700; line-height: 1.1; letter-spacing: 0.01em; }
+h1 { font-size: var(--fs-1); text-transform: uppercase; }
+h2 { font-size: var(--fs-2); }
+h3 { font-size: var(--fs-1); font-weight: 600; }
+p { margin: 0; max-width: var(--measure); }
+a { color: inherit; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.num, output, td.num, .figure { font-variant-numeric: tabular-nums; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[hidden] { display: none !important; }
+.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ------------------------------------------------------------ page frame */
+.masthead { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); min-height: var(--hit);
+  padding: 0 clamp(var(--s4), 3vw, var(--s6)); border-bottom: 1px solid var(--rule); background: var(--sheet); }
+.masthead h1 { font-size: var(--fs-1); letter-spacing: 0.04em; }
+.masthead a { font-size: var(--fs--1); font-weight: 600; display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--hit); }
+.masthead .ic { width: 16px; height: 16px; }
+.app { display: grid; grid-template-columns: var(--col) minmax(0, 1fr); align-items: start; }
+
+/* ------------------------------------------------------------ controls column */
+.controls { background: var(--sheet); border-right: 1px solid var(--rule); position: sticky; top: 0; max-height: 100vh; overflow: auto; overscroll-behavior: contain; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); position: sticky; top: 0; z-index: 2; background: var(--sheet); border-bottom: 1px solid var(--rule); }
+.tab { min-height: 56px; border: 0; background: none; padding: var(--s2) var(--s3); text-align: left; display: grid; align-content: center;
+  border-bottom: 3px solid transparent; color: var(--graphite); }
+.tab b { font: 600 var(--fs-1)/1.1 var(--font-display); color: var(--ink); }
+.tab span { font-size: var(--fs--1); }
+.tab:hover { background: var(--hover); }
+.tab[aria-selected="true"] { border-bottom-color: var(--ink); color: var(--ink); }
+.tabpanel { padding: var(--s2) var(--s5) var(--s5); }
+.section { padding: var(--s4) 0 var(--s5); display: grid; gap: var(--s3); }
+.section + .section { border-top: 1px solid var(--rule); }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); }
+.section-head p { color: var(--graphite); font-size: var(--fs--1); }
+.next { justify-self: start; }
+
+/* fields */
+.field { display: grid; gap: var(--s1); align-content: start; min-width: 0; }
+.field-label { font-weight: 600; font-size: var(--fs--1); letter-spacing: 0.02em; }
+.hint { font-size: var(--fs--1); color: var(--graphite); }
+.inline { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3) var(--s4); }
+.text { width: 100%; min-height: var(--hit); border: 1px solid var(--line); border-radius: var(--radius); background: var(--sheet); padding: 0 var(--s3); }
+.text:hover { border-color: var(--ink); }
+select.text { padding-right: var(--s2); }
+
+/* stepper */
+.stepper { display: inline-grid; grid-template-columns: var(--hit) minmax(52px, auto) var(--hit); align-items: stretch; width: max-content;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--sheet); }
+.stepper button { min-height: var(--hit); border: 0; background: none; display: grid; place-items: center; }
+.stepper button:hover:not(:disabled) { background: var(--hover); }
+.stepper button:active:not(:disabled) { background: var(--rule); }
+.stepper output { display: grid; place-items: center; padding: 0 var(--s2); font-weight: 700; border-inline: 1px solid var(--rule); }
+.stepper.big output { font: 700 var(--fs-2)/1 var(--font-display); min-width: 64px; }
+button:disabled { cursor: not-allowed; color: var(--graphite); opacity: 0.45; }
+
+/* segmented choice */
+.seg { display: flex; flex-wrap: wrap; width: 100%; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.seg button { flex: 1 1 auto; min-height: var(--hit); min-width: var(--hit); border: 0; border-right: 1px solid var(--rule); background: var(--sheet); padding: 0 var(--s3); white-space: nowrap; }
+.seg button:last-child { border-right: 0; }
+.seg button:hover:not([aria-pressed="true"]) { background: var(--hover); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); font-weight: 600; }
+.seg.compact { width: max-content; }
+
+/* buttons */
+.btn { min-height: var(--hit); display: inline-flex; align-items: center; justify-content: center; gap: var(--s2); padding: 0 var(--s4);
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--sheet); font-weight: 600; }
+.btn:hover:not(:disabled) { border-color: var(--ink); background: var(--hover); }
+.btn:active:not(:disabled) { background: var(--rule); }
+.btn.primary { background: var(--signal); color: var(--signal-ink); border-color: var(--signal); }
+.btn.primary:hover:not(:disabled) { background: var(--signal); border-color: var(--signal-ink); box-shadow: inset 0 0 0 1px var(--signal-ink); }
+.btn.primary:active:not(:disabled) { box-shadow: inset 0 0 0 2px var(--signal-ink); }
+.btn.quiet { border-color: transparent; background: none; }
+.btn.quiet:hover:not(:disabled) { border-color: var(--line); }
+.btn.wide { width: 100%; }
+.icon-btn { width: var(--hit); height: var(--hit); display: grid; place-items: center; border: 1px solid transparent; border-radius: var(--radius); background: none; }
+.icon-btn:hover:not(:disabled) { border-color: var(--line); background: var(--hover); }
+.icon-btn.danger:hover:not(:disabled) { color: var(--err); border-color: var(--err); }
+.check { display: grid; grid-template-columns: var(--hit) 1fr; align-items: start; gap: 0 var(--s1); cursor: pointer; }
+.check input { width: 22px; height: 22px; margin: 11px; accent-color: var(--ink); }
+.check span { padding-top: 10px; font-weight: 600; }
+.check small { display: block; font-weight: 400; color: var(--graphite); font-size: var(--fs--1); }
+.swatches { display: flex; flex-wrap: wrap; }
+.swatch { width: var(--hit); height: var(--hit); border: 0; background: none; padding: 0; display: grid; place-items: center; border-radius: var(--radius); }
+.swatch::before { content: ""; width: 28px; height: 28px; border-radius: 50%; background: var(--sw); border: 1px solid var(--line); }
+.swatch.clear::before { background: repeating-conic-gradient(var(--rule) 0 25%, var(--sheet) 0 50%) 0 0 / 10px 10px; }
+.swatch[aria-pressed="true"]::before { box-shadow: 0 0 0 2px var(--sheet), 0 0 0 4px var(--ink); }
+.swatch:hover::before { border-color: var(--ink); }
+
+/* where am I: a small front view of the wall that follows the row being edited */
+.where { position: sticky; top: 56px; z-index: 1; display: flex; align-items: center; gap: var(--s4); padding: var(--s2) 0; background: var(--sheet); border-bottom: 1px solid var(--rule); }
+.elev { flex: none; width: 72px; height: 72px; color: var(--ink); cursor: pointer; }
+.elev .cell { fill: var(--sheet); stroke: currentColor; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.elev .on .cell { fill: var(--signal); }
+.elev .floor { fill: currentColor; }
+.where-text { font-size: var(--fs--1); color: var(--graphite); }
+.where-text b { display: block; font: 700 var(--fs-1)/1.2 var(--font-display); color: var(--ink); }
+/* rows */
+#rows { list-style: none; margin: 0; padding: 0; counter-reset: row; }
+.row { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 0 var(--s3); padding: var(--s4) 0; border-top: 1px solid var(--rule); }
+.row:first-child { border-top: 0; padding-top: var(--s1); }
+.row.lit { box-shadow: inset 4px 0 0 var(--signal); }
+.row.lit .row-no { background: var(--signal); color: var(--signal-ink); }
+.row-no { font: 700 var(--fs-3)/1 var(--font-display); text-align: center; padding: var(--s1) 0; border-radius: var(--radius); align-self: start; }
+.row-no small { display: block; font: 600 0.7rem/1.2 var(--font-body); text-transform: uppercase; letter-spacing: 0.06em; color: var(--graphite); }
+.row.lit .row-no small { color: var(--signal-ink); }
+.row-body { display: grid; gap: var(--s3); min-width: 0; }
+.row-top { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); }
+.row-tools { display: flex; margin-right: calc(-1 * var(--s2)); }
+.sketch { display: block; max-width: 100%; height: auto; color: var(--ink); }
+.sketch * { vector-effect: non-scaling-stroke; }
+.sketch .drawer { fill: var(--sheet); stroke: currentColor; stroke-width: 1.25; }
+.sketch .pull { fill: currentColor; }
+.sketch .wall { stroke: currentColor; stroke-width: 1; stroke-dasharray: 3 2; }
+.row-note { font-size: var(--fs--1); color: var(--graphite); }
+.add-row { margin-top: var(--s2); }
+
+/* advanced */
+details > summary { cursor: pointer; font-weight: 600; min-height: var(--hit); display: flex; align-items: center; gap: var(--s2); list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary .ic { transition: transform 0.15s; }
+details[open] > summary .ic { transform: rotate(90deg); }
+.adv-grid { padding-top: var(--s2); }
+.field-stack { display: grid; gap: var(--s3); }
+.unit-input { display: inline-flex; align-items: center; gap: var(--s2); }
+.unit-input input { width: 96px; }
+.label-grid { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); gap: var(--s2) var(--s3); align-items: center; }
+.label-grid.cols { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+.label-grid .k { font: 600 var(--fs--1)/1.2 var(--font-body); color: var(--graphite); white-space: nowrap; }
+.label-grid .head { font-size: var(--fs--1); font-weight: 600; }
+.alert { color: var(--err); font-weight: 600; }
+
+/* ------------------------------------------------------------ workspace */
+.work { min-width: 0; display: grid; gap: 0; }
+/* summary bar: one line; the copy button drops its words when space runs short */
+.bar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; flex-wrap: nowrap; gap: var(--s4);
+  padding: var(--s2) clamp(var(--s4), 2vw, var(--s5)); background: var(--paper); border-bottom: 1px solid var(--rule); container-type: inline-size; }
+.stats { display: flex; flex-wrap: nowrap; gap: var(--s4); margin: 0; flex: 1 1 auto; min-width: 0; }
+.stats div { display: grid; min-width: 0; }
+.stats dt { order: 2; font-size: 0.75rem; line-height: 1.2; color: var(--graphite); white-space: nowrap; }
+.stats dd { margin: 0; font: 700 var(--fs-0)/1.2 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.actions { display: flex; gap: var(--s2); flex-wrap: nowrap; align-items: center; margin-left: auto; flex: none; }
+.bar .btn { font-size: var(--fs--1); padding: 0 var(--s3); white-space: nowrap; }
+@container (max-width: 520px) { .zip-ext { display: none; } }
+@container (max-width: 860px) { #btn-copy .btn-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } #btn-copy { width: var(--hit); padding: 0; } }
+/* preview buttons keep only their icons on a narrow stage (names stay for screen readers) */
+.stage { container-type: inline-size; }
+@container (max-width: 620px) { #view-hint { display: none; } .view-tools .btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .view-tools .btn { width: var(--hit); padding: 0; } }
+/* the message floats just under the bar, so the page never shifts when it appears */
+#status { position: absolute; top: calc(100% + var(--s2)); left: clamp(var(--s4), 3vw, var(--s6)); max-width: min(560px, calc(100% - 2 * var(--s4)));
+  display: flex; align-items: center; gap: var(--s3); padding: var(--s2) var(--s2) var(--s2) var(--s3); font-size: var(--fs--1);
+  background: var(--sheet); border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius); }
+#status:empty { display: none; }
+#status[data-tone="good"] { color: var(--ok); border-left-color: var(--ok); }
+#status[data-tone="bad"] { color: var(--err); border-left-color: var(--err); font-weight: 600; }
+#status .btn { padding: 0 var(--s4); color: var(--ink); }
+
+
+.stage { position: relative; height: clamp(360px, 62vh, 720px); background-color: var(--stage);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px; border-bottom: 1px solid var(--rule); }
+#view { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#view:active { cursor: grabbing; }
+#view:focus-visible { outline-offset: -3px; }
+.view-tools { position: absolute; top: var(--s3); right: var(--s3); display: flex; gap: var(--s2); flex-wrap: wrap; justify-content: flex-end; }
+.view-tools .btn { background: var(--sheet); }
+#view-hint { position: absolute; left: var(--s4); bottom: var(--s3); right: var(--s4); font-size: var(--fs--1); color: var(--graphite); pointer-events: none; }
+.dims { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.dims span { position: absolute; left: 0; top: 0; padding: 1px 6px; font: 600 var(--fs--1)/1.4 var(--font-body); font-variant-numeric: tabular-nums;
+  color: var(--graphite); background: color-mix(in srgb, var(--stage) 82%, transparent); border-radius: var(--radius); white-space: nowrap; }
+#loading { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: var(--s5); color: var(--graphite); background: var(--stage); }
+#loading[data-tone="bad"] { color: var(--err); font-weight: 600; }
+.no-gl #view, .no-gl .view-tools { display: none; }
+.no-gl #view-hint { position: static; padding: var(--s5); font-size: var(--fs-0); }
+
+/* parts */
+.parts { padding: var(--s5) clamp(var(--s4), 3vw, var(--s6)) var(--s6); display: grid; gap: var(--s4); background: var(--sheet); }
+.parts-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s2) var(--s4); }
+.parts-head p { color: var(--graphite); }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; font: 600 var(--fs-1)/1.2 var(--font-display); padding-bottom: var(--s2); }
+th, td { text-align: left; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+th { font-size: var(--fs--1); font-weight: 600; color: var(--graphite); white-space: nowrap; border-bottom-color: var(--line); }
+td.num, th.num { text-align: right; white-space: nowrap; }
+td.qty { font-weight: 700; font-size: var(--fs-1); }
+tbody tr:hover { background: var(--hover); }
+tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid var(--ink); }
+.file { display: block; font: var(--fs--1)/1.4 var(--font-mono); color: var(--graphite); overflow-wrap: anywhere; }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: var(--s2); border: 1px solid var(--line); vertical-align: -1px; }
+.dot-case { background: var(--case-color); }
+.dot-drawer { background: var(--drawer-color); }
+.fine { font-size: var(--fs--1); color: var(--graphite); }
+.steps { margin: 0; padding-left: 1.4em; display: grid; gap: var(--s2); max-width: var(--measure); }
+
+/* footer */
+.foot { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s4) var(--s6);
+  padding: var(--s5) clamp(var(--s4), 3vw, var(--s6)) var(--s6); border-top: 1px solid var(--rule); font-size: var(--fs--1); color: var(--graphite); }
+.foot h2 { font-size: var(--fs-1); color: var(--ink); margin-bottom: var(--s1); }
+
+/* ------------------------------------------------------------ responsive */
+@media (max-width: 1199px) { :root { --col: 360px; } .tabpanel { padding-inline: var(--s4); } }
+@media (max-width: 899px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .work { display: contents; }
+  .stage { order: -1; height: clamp(280px, 46vh, 460px); }
+  .controls { position: static; max-height: none; overflow: visible; border-right: 0; border-bottom: 1px solid var(--rule); }
+  .tabs { top: 0; }
+  /* summary and download stay in reach at the bottom of the screen */
+  #status { top: auto; bottom: calc(100% + var(--s2)); left: var(--s4); }
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; top: auto; border-top: 1px solid var(--rule); border-bottom: 0;
+    padding: var(--s2) var(--s4) calc(var(--s2) + env(safe-area-inset-bottom)); gap: var(--s2) var(--s3); min-height: 0; background: var(--sheet); }
+  .stats div:nth-child(1), .stats div:nth-child(2) { display: none; }
+  #btn-copy { display: none; }
+  .actions { flex: 1 1 auto; justify-content: flex-end; }
+  body { padding-bottom: 96px; }
+}
+@media (max-width: 359px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .tabpanel { padding-inline: var(--s4); }
+  .row { grid-template-columns: 32px minmax(0, 1fr); gap: 0 var(--s2); }
+  .row-no { font-size: var(--fs-2); }
+  /* parts table becomes a stacked list */
+  #parts-table thead { display: none; }
+  #parts-table tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s3); padding: var(--s3) 0; border-bottom: 1px solid var(--rule); }
+  #parts-table td { border: 0; padding: 0; }
+  #parts-table td:first-child { flex: 1 1 0; min-width: 0; padding-bottom: var(--s1); }
+  #parts-table td.qty { flex: none; }
+  #parts-table td.qty::before { content: "×"; font-weight: 400; color: var(--graphite); margin-right: 2px; }
+  #parts-table td.num:not(.qty) { flex: none; text-align: left; font-size: var(--fs--1); color: var(--graphite); }
+  #parts-table td.num:not(.qty):nth-child(3) { flex-basis: 100%; }
+  #parts-table td.num:not(.qty)::before { content: attr(data-label) " "; }
+  #parts-table tfoot tr { border-top: 2px solid var(--ink); border-bottom: 0; }
+  #parts-table tfoot td:empty { display: none; }
+  .tab { padding-inline: var(--s2); }
+  .tab span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-minus" viewBox="0 0 20 20"><path d="M5 10h10"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 20 20"><path d="M5 10h10M10 5v10"/></symbol>
+  <symbol id="i-up" viewBox="0 0 20 20"><path d="M10 15V5M5.5 9.5 10 5l4.5 4.5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 20 20"><path d="M10 5v10M5.5 10.5 10 15l4.5-4.5"/></symbol>
+  <symbol id="i-dup" viewBox="0 0 20 20"><rect x="6.5" y="6.5" width="9" height="9" rx="1"/><path d="M4 12.5V5a1 1 0 0 1 1-1h7.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 20 20"><path d="M4 6h12M8 6V4.5h4V6M6 6l.7 9.5h6.6L14 6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 3.5v9M6 8.5l4 4 4-4M4 16h12"/></symbol>
+  <symbol id="i-list" viewBox="0 0 20 20"><path d="M7.5 5.5h8.5M7.5 10h8.5M7.5 14.5h8.5M4 5.5h.01M4 10h.01M4 14.5h.01"/></symbol>
+  <symbol id="i-frame" viewBox="0 0 20 20"><path d="M4 7.5V4h3.5M12.5 4H16v3.5M16 12.5V16h-3.5M7.5 16H4v-3.5"/></symbol>
+  <symbol id="i-drawer" viewBox="0 0 20 20"><rect x="3.5" y="4" width="13" height="8" rx="0.5"/><path d="M2.5 12h15v4h-15zM8.5 14h3"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 20 20"><path d="M8 5l5 5-5 5"/></symbol>
+  <symbol id="i-ruler" viewBox="0 0 20 20"><path d="M3 13.5 13.5 3l3.5 3.5L6.5 17z"/><path d="M6.5 10l1.5 1.5M9 7.5l2 2M11.5 5l1.5 1.5"/></symbol>
+  <symbol id="i-out" viewBox="0 0 20 20"><path d="M11.5 4H16v4.5M16 4l-7 7M14 11.5V16H4V6h4.5"/></symbol>
+</svg>
+
+<header class="masthead">
+  <h1>Drawer wall builder</h1>
+  <a href="__GUIDE_URL__" target="_blank" rel="noopener">Build guide<svg class="ic" aria-hidden="true"><use href="#i-out"/></svg></a>
+</header>
+
+<main class="app">
+  <section class="controls" aria-label="Design the wall">
+    <div class="tabs" role="tablist" aria-label="Steps">
+      <button type="button" class="tab" role="tab" id="tab-layout" aria-controls="panel-layout" aria-selected="true"><b>1 Layout</b><span>Width and rows</span></button>
+      <button type="button" class="tab" role="tab" id="tab-finish" aria-controls="panel-finish" aria-selected="false" tabindex="-1"><b>2 Finish</b><span>Top, sides, legs</span></button>
+      <button type="button" class="tab" role="tab" id="tab-print" aria-controls="panel-print" aria-selected="false" tabindex="-1"><b>3 Print</b><span>Fit and filament</span></button>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="panel-layout" aria-labelledby="tab-layout" tabindex="0">
+      <div class="section">
+        <div class="section-head"><h2 id="h-width">Columns</h2></div>
+        <div class="inline">
+          <div class="stepper big" role="group" aria-labelledby="h-width">
+            <button type="button" id="cols-down" aria-label="One column fewer"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button>
+            <output id="cols-out" aria-live="polite">4</output>
+            <button type="button" id="cols-up" aria-label="One column more"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
+          </div>
+          <p id="cols-hint" class="hint"></p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h2>Rows</h2><p>Built from the bottom up</p></div>
+        <div class="where" id="where">
+          <svg id="elev" class="elev" role="img" aria-labelledby="where-text"></svg>
+          <p id="where-text" class="where-text" aria-live="polite"></p>
+        </div>
+        <ol id="rows"></ol>
+        <button type="button" id="add-row" class="btn wide add-row"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Add a row on top</button>
+      </div>
+
+      <div class="section">
+        <h2>Compartments</h2>
+        <div class="seg" role="group" aria-label="How compartments are made">
+          <button type="button" data-style="fixed" data-fid="style-fixed" aria-pressed="true">Printed-in walls</button>
+          <button type="button" data-style="removable" data-fid="style-removable" aria-pressed="false">Removable dividers</button>
+        </div>
+        <p id="style-note" class="hint"></p>
+      </div>
+      <button type="button" class="btn next" data-goto="finish">Next: finish<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></button>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="panel-finish" aria-labelledby="tab-finish" tabindex="0" hidden>
+      <div class="section">
+        <div class="section-head"><h2 id="h-top">Top</h2><p>Covers the top rails</p></div>
+        <div class="seg" role="group" aria-labelledby="h-top">
+          <button type="button" data-fin="top" data-v="none" data-fid="top-none">None</button><button type="button" data-fin="top" data-v="minimal" data-fid="top-minimal">Minimal</button><button type="button" data-fin="top" data-v="labeled" data-fid="top-labeled">Labelled</button><button type="button" data-fin="top" data-v="structural" data-fid="top-structural">Structural</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h2 id="h-sides">Sides</h2><p>Cover the side rails</p></div>
+        <div class="seg" role="group" aria-labelledby="h-sides">
+          <button type="button" data-fin="sides" data-v="none" data-fid="sides-none">None</button><button type="button" data-fin="sides" data-v="minimal" data-fid="sides-minimal">Minimal</button><button type="button" data-fin="sides" data-v="labeled" data-fid="sides-labeled">Labelled</button><button type="button" data-fin="sides" data-v="structural" data-fid="sides-structural">Structural</button>
+        </div>
+      </div>
+      <div class="section" id="labels-section">
+        <div class="section-head"><h2 id="h-labels">Labels</h2><p>Letters, numbers, - + / &amp; #</p></div>
+        <div class="field"><span class="field-label" id="l-lmode">What to label</span>
+          <div class="seg" role="group" aria-labelledby="l-lmode">
+            <button type="button" data-fin="labelMode" data-v="title" data-fid="lmode-title">One title per panel</button><button type="button" data-fin="labelMode" data-v="each" data-fid="lmode-each" id="lmode-each">Each column and row</button>
+          </div></div>
+        <div id="label-inputs" class="field-stack"></div>
+        <div class="field"><span class="field-label" id="l-letter">Lettering</span>
+          <div class="seg" role="group" aria-labelledby="l-letter">
+            <button type="button" data-fin="lettering" data-v="engraved" data-fid="letter-engraved">Pressed in</button><button type="button" data-fin="lettering" data-v="raised" data-fid="letter-raised">Raised</button>
+          </div></div>
+        <div class="field" id="tilt-field"><span class="field-label" id="l-tilt">Top label surface</span>
+          <div class="seg" role="group" aria-labelledby="l-tilt">
+            <button type="button" data-fin="tilt" data-v="false" data-fid="tilt-off">Flat on top</button><button type="button" data-fin="tilt" data-v="true" data-fid="tilt-on">Tilted strip at the front</button>
+          </div></div>
+        <p class="hint" id="label-print-hint"></p>
+      </div>
+      <div class="section" id="rod-field">
+        <div class="section-head"><h2>Rods</h2><p>For the structural panels</p></div>
+        <div class="inline">
+          <div class="seg compact" role="group" aria-label="Rod shape">
+            <button type="button" data-fin="rodShape" data-v="round" data-fid="rod-round">Round</button><button type="button" data-fin="rodShape" data-v="square" data-fid="rod-square">Square</button>
+          </div>
+          <label class="field rod-d" for="fin-rodD"><span class="visually-hidden">Rod diameter or bar width in mm</span>
+            <span class="unit-input"><input type="number" id="fin-rodD" class="text" min="3" max="12" step="0.5" inputmode="decimal"><span aria-hidden="true">mm</span></span></label>
+        </div>
+        <p class="hint" id="rod-hint"></p>
+      </div>
+      <div class="section" id="pieces-section">
+        <div class="section-head"><h2 id="h-pieces">Panel pieces</h2></div>
+        <div class="seg" role="group" aria-labelledby="h-pieces">
+          <button type="button" data-fin="pieces" data-v="long" data-fid="pieces-long">As long as the bed allows</button><button type="button" data-fin="pieces" data-v="each" data-fid="pieces-each">One per column and row</button>
+        </div>
+        <p class="hint" id="pieces-hint"></p>
+      </div>
+      <div class="section">
+        <div class="section-head"><h2 id="h-bottom">Bottom</h2><p>What the wall stands on</p></div>
+        <div class="seg" role="group" aria-labelledby="h-bottom">
+          <button type="button" data-fin="bottom" data-v="none" data-fid="bottom-none">None</button><button type="button" data-fin="bottom" data-v="plate" data-fid="bottom-plate">Base plate</button><button type="button" data-fin="bottom" data-v="legs" data-fid="bottom-legs">Legs</button>
+        </div>
+        <div id="legs-fields" class="field-stack">
+          <div class="field"><span class="field-label" id="l-legstyle">Leg style</span>
+            <div class="seg" role="group" aria-labelledby="l-legstyle">
+              <button type="button" data-fin="legStyle" data-v="straight" data-fid="leg-straight">Straight</button><button type="button" data-fin="legStyle" data-v="tapered" data-fid="leg-tapered">Tapered</button><button type="button" data-fin="legStyle" data-v="plinth" data-fid="leg-plinth">Plinth</button>
+            </div></div>
+          <div class="field"><span class="field-label" id="l-legh">Leg height</span>
+            <div class="stepper" role="group" aria-labelledby="l-legh">
+              <button type="button" id="leg-down" aria-label="Legs 5 mm shorter"><svg class="ic" aria-hidden="true"><use href="#i-minus"/></svg></button><output id="leg-out">15 mm</output><button type="button" id="leg-up" aria-label="Legs 5 mm taller"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
+            </div></div>
+        </div>
+      </div>
+      <button type="button" class="btn next" data-goto="print">Next: print<svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg></button>
+    </div>
+
+    <div class="tabpanel" role="tabpanel" id="panel-print" aria-labelledby="tab-print" tabindex="0" hidden>
+      <div class="section">
+        <h2>Before the first print</h2>
+        <label class="check" for="opt-kit"><input type="checkbox" id="opt-kit"><span>Include the fit test kit<small>About 85 g of small pieces. Print them first to find the rail clearance your printer needs.</small></span></label>
+        <label class="field" for="adv-fit"><span class="field-label">Rail clearance per side</span>
+          <select id="adv-fit" class="text"><option value="0.15">0.15 mm (tight)</option><option value="0.2">0.20 mm</option><option value="0.25">0.25 mm (standard)</option><option value="0.3">0.30 mm</option><option value="0.35">0.35 mm (loose)</option></select>
+          <span class="hint">Use the groove piece from the test kit that slides the full length without wobble.</span></label>
+        <label class="field" for="adv-material"><span class="field-label">Filament for the weight estimate</span>
+          <select id="adv-material" class="text"><option value="PLA">PLA</option><option value="PETG">PETG</option></select></label>
+      </div>
+      <div class="section">
+        <h2>Preview colours</h2>
+        <div class="field"><span class="field-label" id="l-case">Casings</span><div id="case-colors" class="swatches" role="group" aria-labelledby="l-case"></div></div>
+        <div class="field"><span class="field-label" id="l-drawer">Drawers</span><div id="drawer-colors" class="swatches" role="group" aria-labelledby="l-drawer"></div></div>
+      </div>
+      <div class="section">
+        <details id="advanced">
+          <summary><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>Unit size (changes every part)</summary>
+          <div class="pair adv-grid">
+            <label class="field" for="adv-unit_w"><span class="field-label">Unit width (mm)</span><input type="number" class="text" id="adv-unit_w" min="60" max="120" step="1" inputmode="decimal"></label>
+            <label class="field" for="adv-unit_h"><span class="field-label">Unit height (mm)</span><input type="number" class="text" id="adv-unit_h" min="32" max="80" step="1" inputmode="decimal"></label>
+            <label class="field" for="adv-depth"><span class="field-label">Depth (mm)</span><input type="number" class="text" id="adv-depth" min="80" max="220" step="5" inputmode="decimal"></label>
+          </div>
+          <p id="adv-note" class="hint" style="padding-top: var(--s3)"></p>
+          <p class="hint">Modules only lock together if they share the unit size and depth. Clearance can differ between batches.</p>
+          <p id="adv-errors" class="alert" role="alert" hidden></p>
+        </details>
+      </div>
+      <div class="section">
+        <button type="button" id="btn-reset" class="btn">Start again from the example wall</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="work">
+    <div class="bar" role="region" aria-label="Summary and download">
+      <dl id="stats" class="stats"></dl>
+      <div class="actions">
+        <button type="button" id="btn-copy" class="btn quiet" title="Copy parts list"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg><span class="btn-text">Copy parts list</span></button>
+        <button type="button" id="btn-zip" class="btn primary"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span id="zip-label">Download print files</span></button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </div>
+
+    <div id="view-wrap" class="stage">
+      <canvas id="view" tabindex="0" role="img" aria-label="3D preview of the drawer wall. Arrow keys turn it, plus and minus zoom."></canvas>
+      <div class="view-tools">
+        <button type="button" id="btn-open" class="btn" title="Open or close all drawers"><svg class="ic" aria-hidden="true"><use href="#i-drawer"/></svg><span>Open all drawers</span></button>
+        <button type="button" id="btn-dims" class="btn" aria-pressed="true" title="Show or hide the overall dimensions"><svg class="ic" aria-hidden="true"><use href="#i-ruler"/></svg><span>Hide dimensions</span></button>
+        <button type="button" id="btn-view" class="btn" title="Reset view"><svg class="ic" aria-hidden="true"><use href="#i-frame"/></svg><span class="view-label">Reset view</span></button>
+      </div>
+      <p id="view-hint">Drag to turn · scroll or pinch to zoom · shift-drag to move · click a drawer to open it</p>
+      <div id="dims" class="dims" aria-hidden="true"><span id="dim-w"></span><span id="dim-h"></span><span id="dim-d"></span></div>
+      <div id="loading" role="status">Loading the 3D engine…</div>
+    </div>
+
+    <section class="parts" aria-labelledby="h-parts">
+      <div class="parts-head">
+        <h2 id="h-parts">Parts to print</h2>
+        <p>One STL per part, already in print orientation, quantity in the file name.</p>
+      </div>
+      <table id="parts-table">
+        <thead><tr><th scope="col">Part and file</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Print size (mm)</th><th scope="col" class="num">Each (g)</th><th scope="col" class="num">Total (g)</th></tr></thead>
+        <tbody id="parts-body"></tbody>
+        <tfoot id="parts-foot"></tfoot>
+      </table>
+      <div id="rods-wrap">
+        <table>
+          <caption>Rods to cut (not printed)</caption>
+          <thead><tr><th scope="col">Rod</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Length (mm)</th></tr></thead>
+          <tbody id="rods-body"></tbody>
+        </table>
+      </div>
+      <p id="by-color" class="fine"></p>
+      <details class="howto">
+        <summary><svg class="ic" aria-hidden="true"><use href="#i-chev"/></svg>Printing and assembly in four steps</summary>
+        <ol class="steps">
+          <li>Print the test kit first and note which groove piece slides best on the rail. If it is not 0.25 mm, set it under 3 Print.</li>
+          <li>Print with a 0.4 mm nozzle, 0.20 mm layers, 3 wall loops and no supports. Do not rotate or scale the files.</li>
+          <li>Lay out the base. Build from the bottom up and from left to right, sliding each empty casing in from the front until it clicks. Fit the side panels as you go and slide the top panels on last.</li>
+          <li>Put the drawers in last. A drawer stops about three-quarters open; a firm pull takes it out.</li>
+        </ol>
+      </details>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <div><h2>What you get</h2><p>A ZIP with one STL per part, the assembled wall as one model, a parts list (CSV) and print notes. Files are made in your browser; nothing is uploaded.</p></div>
+    <div><h2>Assumes</h2><p>A 256 mm bed, 0.4 mm nozzle, 0.20 mm layers, PLA or PETG. Long panels are split to fit the bed.</p></div>
+    <div><h2>More</h2><p>Mechanism, print settings and troubleshooting are in the <a href="__GUIDE_URL__" target="_blank" rel="noopener">build guide</a>.</p></div>
+  </footer>
+</main>
+<script>var WASM_B64 = "__WASM_B64__";</script>
+<script type="module">
+/*__KERNEL__*/
+/*__APP__*/
+</script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+{
+ "params": {
+  "unit_w": 60.0,
+  "unit_h": 40.0,
+  "depth": 130.0,
+  "gap": 0.2,
+  "wall": 1.6,
+  "groove_backing": 0.8,
+  "edge_chamfer": 0.5,
+  "dt_height": 1.6,
+  "dt_neck": 5.0,
+  "dt_angle": 30.0,
+  "dt_tip_chamfer": 0.4,
+  "fit_dovetail": 0.25,
+  "dt_start": 10.5,
+  "dt_flare": 0.5,
+  "dt_flare_len": 5.0,
+  "band": 8.0,
+  "slit": 0.7,
+  "lock_len": 18.0,
+  "lock_t": 1.6,
+  "lock_bump": 1.4,
+  "lock_bump_w": 5.0,
+  "lock_bump_z": 1.4,
+  "lock_bump_top": 1.0,
+  "lock_catch_deg": 45.0,
+  "lock_ramp_deg": 30.0,
+  "lock_x": 22.0,
+  "lock_y": 8.0,
+  "window_fit": 0.4,
+  "lock_play": 0.4,
+  "stop_len": 14.5,
+  "stop_t": 1.2,
+  "stop_bump": 1.1,
+  "stop_bump_w": 2.6,
+  "stop_bump_z": 1.2,
+  "stop_bump_top": 1.5,
+  "stop_ramp_deg": 30.0,
+  "stop_catch_deg": 50.0,
+  "stop_inside": 30.0,
+  "stop_recess": 0.2,
+  "rear_lip_w": 3.0,
+  "rear_lip_t": 1.6,
+  "fit_side": 0.35,
+  "fit_top": 0.5,
+  "d_wall": 1.2,
+  "d_floor": 1.2,
+  "d_front": 2.0,
+  "d_front_recess": 0.3,
+  "d_chamfer": 5.0,
+  "d_edge": 0.4,
+  "d_scoop": 6.0,
+  "catch_len": 3.0,
+  "pull_depth": 6.0,
+  "pull_t": 1.8,
+  "pull_radius": 2.0,
+  "label": true,
+  "label_h": 14.0,
+  "label_margin": 6.0,
+  "label_depth": 0.6,
+  "divider_pitch": 30.0,
+  "divider_t": 1.2,
+  "divider_fit": 0.2,
+  "rib_t": 1.0,
+  "rib_d": 1.2,
+  "base_t": 3.0,
+  "thick (derived)": 2.45,
+  "backing (derived)": 0.8,
+  "dt_head (derived)": 6.848
+ },
+ "checks": [
+  {
+   "check": "case 1x1: valid single solid",
+   "ok": true,
+   "detail": "volume 50.8 cm3"
+  },
+  {
+   "check": "case 2x1: valid single solid",
+   "ok": true,
+   "detail": "volume 83.1 cm3"
+  },
+  {
+   "check": "case 1x2: valid single solid",
+   "ok": true,
+   "detail": "volume 72.2 cm3"
+  },
+  {
+   "check": "drawer 1x1: valid single solid",
+   "ok": true,
+   "detail": "volume 25.7 cm3"
+  },
+  {
+   "check": "drawer 2x1: valid single solid",
+   "ok": true,
+   "detail": "volume 43.9 cm3"
+  },
+  {
+   "check": "base 2: valid single solid",
+   "ok": true,
+   "detail": "volume 48.7 cm3"
+  },
+  {
+   "check": "divider: valid single solid",
+   "ok": true,
+   "detail": "volume 4.8 cm3"
+  },
+  {
+   "check": "coupon rail: valid single solid",
+   "ok": true,
+   "detail": "volume 2.1 cm3"
+  },
+  {
+   "check": "coupon groove: valid single solid",
+   "ok": true,
+   "detail": "volume 2.4 cm3"
+  },
+  {
+   "check": "1x1 on 1x1: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "1x1 beside 1x1: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "2x1 across two 1x1: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "1x2 beside two stacked 1x1: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "two 1x1 on a 2-wide base: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "drawer 1x1 closed in case: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "drawer 2x1 closed in case: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "divider in centre slot: no interference",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "rail-to-groove clearance ~ fit_dovetail (0.25)",
+   "ok": true,
+   "detail": "0.250 mm"
+  },
+  {
+   "check": "rail front end touches groove end at home (alignment stop)",
+   "ok": true,
+   "detail": "0.000 mm"
+  },
+  {
+   "check": "face-to-face gap = gap (0.2)",
+   "ok": true,
+   "detail": "0.200 mm"
+  },
+  {
+   "check": "drawer side / top clearance",
+   "ok": null,
+   "detail": "0.35 / 0.35 / 0.50 mm"
+  },
+  {
+   "check": "drawer 1x1 outside (w x h x d)",
+   "ok": null,
+   "detail": "55.0 x 35.2 x 125.5 mm, inside approx 52.6 x 34.0 x 122.2 mm"
+  },
+  {
+   "check": "vertical slide: nothing but the lock bump ever interferes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "vertical slide: lock tongue deflection needed",
+   "ok": null,
+   "detail": "1.20 mm (bump 1.4 - gap 0.2)"
+  },
+  {
+   "check": "upper module pushed 0.3 mm back: blocked by groove end (positive stop)",
+   "ok": true,
+   "detail": "overlap 2.495 mm3"
+  },
+  {
+   "check": "upper module pulled 0.55 mm forward: caught by lock",
+   "ok": true,
+   "detail": "overlap 0.056 mm3"
+  },
+  {
+   "check": "lock free play along depth",
+   "ok": null,
+   "detail": "0.40 mm"
+  },
+  {
+   "check": "side slide: nothing but the lock bump ever interferes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "right module pushed 0.3 mm back: blocked (positive stop)",
+   "ok": true,
+   "detail": "overlap 2.495 mm3"
+  },
+  {
+   "check": "right module pulled forward: caught by lock",
+   "ok": true,
+   "detail": "overlap 0.056 mm3"
+  },
+  {
+   "check": "drawer travel: only the catch blocks touch the stop bumps",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "drawer stop: spring deflection needed",
+   "ok": null,
+   "detail": "1.10 mm"
+  },
+  {
+   "check": "drawer pulled to stop (out 95.8 mm, 30 mm still inside): free",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "drawer pulled 0.4 mm past the stop: blocked",
+   "ok": true,
+   "detail": "overlap 0.496 mm3"
+  },
+  {
+   "check": "drawer fully removed: free",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "drawer pushed 0.3 mm deeper than closed: blocked by rear lip",
+   "ok": true,
+   "detail": "overlap 9.265 mm3"
+  },
+  {
+   "check": "drawer tilt at stop",
+   "ok": null,
+   "detail": "rear can lift 0.50 mm; catch block sits 24.1 mm from the rear, so the catch lifts ~0.10 mm and keeps 1.00 mm engagement"
+  },
+  {
+   "check": "closed drawer does not rest on the stop springs",
+   "ok": true,
+   "detail": "gap 0.20 mm"
+  },
+  {
+   "check": "drawer tipped 0.92 deg at the stop: no clash",
+   "ok": true,
+   "detail": "0.0000 mm3"
+  },
+  {
+   "check": "tipped drawer pulled 0.4 mm further: still caught",
+   "ok": true,
+   "detail": "overlap 0.323 mm3"
+  },
+  {
+   "check": "1x1: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "2x1: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "3x1: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "4x1: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "1x2: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "2x2: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "3x2: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "4x2: closed free, stop free, past stop blocked",
+   "ok": true,
+   "detail": "0.0000 / 0.0000 / 0.496 mm3"
+  },
+  {
+   "check": "module lock tongue (PLA): bending strain 0.89 % < 2.0 %",
+   "ok": true,
+   "detail": "stiffness 4.64 N/mm each, push-in ~5.9 N, pull-out ~10.3 N (drawer out)"
+  },
+  {
+   "check": "module lock tongue (PETG): bending strain 0.89 % < 3.5 %",
+   "ok": true,
+   "detail": "stiffness 2.81 N/mm each, push-in ~3.6 N, pull-out ~6.3 N (drawer out)"
+  },
+  {
+   "check": "drawer stop tongue (PLA): bending strain 0.94 % < 2.0 %",
+   "ok": true,
+   "detail": "stiffness 3.74 N/mm each, push-in ~8.7 N, pull-out ~19.1 N"
+  },
+  {
+   "check": "drawer stop tongue (PETG): bending strain 0.94 % < 3.5 %",
+   "ok": true,
+   "detail": "stiffness 2.27 N/mm each, push-in ~5.3 N, pull-out ~11.6 N"
+  },
+  {
+   "check": "lock window front strip",
+   "ok": null,
+   "detail": "carries ~39 N at 25 MPa (PLA) per window"
+  },
+  {
+   "check": "dovetail pull-apart",
+   "ok": null,
+   "detail": "two groove lips, 394 mm2 in shear -> >3.9 kN at 10 MPa"
+  }
+ ],
+ "failed": 0
+}

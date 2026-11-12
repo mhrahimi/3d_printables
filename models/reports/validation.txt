@@ -1,0 +1,71 @@
+Building parts ...
+
+1. Solid validity
+  [PASS] case 1x1: valid single solid  - volume 50.8 cm3
+  [PASS] case 2x1: valid single solid  - volume 83.1 cm3
+  [PASS] case 1x2: valid single solid  - volume 72.2 cm3
+  [PASS] drawer 1x1: valid single solid  - volume 25.7 cm3
+  [PASS] drawer 2x1: valid single solid  - volume 43.9 cm3
+  [PASS] base 2: valid single solid  - volume 48.7 cm3
+  [PASS] divider: valid single solid  - volume 4.8 cm3
+  [PASS] coupon rail: valid single solid  - volume 2.1 cm3
+  [PASS] coupon groove: valid single solid  - volume 2.4 cm3
+
+2. Static fit (modules at home position)
+  [PASS] 1x1 on 1x1: no interference  - 0.0000 mm3
+  [PASS] 1x1 beside 1x1: no interference  - 0.0000 mm3
+  [PASS] 2x1 across two 1x1: no interference  - 0.0000 mm3
+  [PASS] 1x2 beside two stacked 1x1: no interference  - 0.0000 mm3
+  [PASS] two 1x1 on a 2-wide base: no interference  - 0.0000 mm3
+  [PASS] drawer 1x1 closed in case: no interference  - 0.0000 mm3
+  [PASS] drawer 2x1 closed in case: no interference  - 0.0000 mm3
+  [PASS] divider in centre slot: no interference  - 0.0000 mm3
+
+3. Clearances
+  [PASS] rail-to-groove clearance ~ fit_dovetail (0.25)  - 0.250 mm
+  [PASS] rail front end touches groove end at home (alignment stop)  - 0.000 mm
+  [PASS] face-to-face gap = gap (0.2)  - 0.200 mm
+  [info] drawer side / top clearance  - 0.35 / 0.35 / 0.50 mm
+  [info] drawer 1x1 outside (w x h x d)  - 55.0 x 35.2 x 125.5 mm, inside approx 52.6 x 34.0 x 122.2 mm
+
+4. Module insertion path (upper module slides in from the front)
+  [PASS] vertical slide: nothing but the lock bump ever interferes
+  [info] vertical slide: lock tongue deflection needed  - 1.20 mm (bump 1.4 - gap 0.2)
+  [PASS] upper module pushed 0.3 mm back: blocked by groove end (positive stop)  - overlap 2.495 mm3
+  [PASS] upper module pulled 0.55 mm forward: caught by lock  - overlap 0.056 mm3
+  [info] lock free play along depth  - 0.40 mm
+  [PASS] side slide: nothing but the lock bump ever interferes
+  [PASS] right module pushed 0.3 mm back: blocked (positive stop)  - overlap 2.495 mm3
+  [PASS] right module pulled forward: caught by lock  - overlap 0.056 mm3
+
+5. Drawer travel
+  [PASS] drawer travel: only the catch blocks touch the stop bumps
+  [info] drawer stop: spring deflection needed  - 1.10 mm
+  [PASS] drawer pulled to stop (out 95.8 mm, 30 mm still inside): free  - 0.0000 mm3
+  [PASS] drawer pulled 0.4 mm past the stop: blocked  - overlap 0.496 mm3
+  [PASS] drawer fully removed: free
+  [PASS] drawer pushed 0.3 mm deeper than closed: blocked by rear lip  - overlap 9.265 mm3
+  [info] drawer tilt at stop  - rear can lift 0.50 mm; catch block sits 24.1 mm from the rear, so the catch lifts ~0.10 mm and keeps 1.00 mm engagement
+  [PASS] closed drawer does not rest on the stop springs  - gap 0.20 mm
+  [PASS] drawer tipped 0.92 deg at the stop: no clash  - 0.0000 mm3
+  [PASS] tipped drawer pulled 0.4 mm further: still caught  - overlap 0.323 mm3
+
+5b. Every exported size: drawer closed, at stop, past stop
+  [PASS] 1x1: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 2x1: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 3x1: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 4x1: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 1x2: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 2x2: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 3x2: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+  [PASS] 4x2: closed free, stop free, past stop blocked  - 0.0000 / 0.0000 / 0.496 mm3
+
+6. Flexure strain and forces (beam theory)
+  [PASS] module lock tongue (PLA): bending strain 0.89 % < 2.0 %  - stiffness 4.64 N/mm each, push-in ~5.9 N, pull-out ~10.3 N (drawer out)
+  [PASS] module lock tongue (PETG): bending strain 0.89 % < 3.5 %  - stiffness 2.81 N/mm each, push-in ~3.6 N, pull-out ~6.3 N (drawer out)
+  [PASS] drawer stop tongue (PLA): bending strain 0.94 % < 2.0 %  - stiffness 3.74 N/mm each, push-in ~8.7 N, pull-out ~19.1 N
+  [PASS] drawer stop tongue (PETG): bending strain 0.94 % < 3.5 %  - stiffness 2.27 N/mm each, push-in ~5.3 N, pull-out ~11.6 N
+  [info] lock window front strip  - carries ~39 N at 25 MPa (PLA) per window
+  [info] dovetail pull-apart  - two groove lips, 394 mm2 in shear -> >3.9 kN at 10 MPa
+
+54 checks, 0 failed

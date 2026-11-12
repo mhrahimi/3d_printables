@@ -1,0 +1,24 @@
+{
+  "name": "drawer-wall-builder",
+  "version": "1.0.0",
+  "description": "Browser builder for a modular, 3D-printable drawer wall: lay it out, preview it in 3D, download print-ready STLs.",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test/matrix.test.mjs && node test/fit.test.mjs && node test/addons.test.mjs && node test/clearance.test.mjs",
+    "test:parity": "node test/export.test.mjs /tmp/drawer-wall-js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "fflate": "^0.8.2",
+    "manifold-3d": "^3.5.4",
+    "three": "^0.170.0"
+  },
+  "type": "module",
+  "private": true,
+  "author": "Hossein Rahimi",
+  "homepage": "https://mhrahimi.github.io/3d_printables/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mhrahimi/3d_printables.git"
+  }
+}

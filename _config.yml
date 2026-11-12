@@ -1,0 +1,11 @@
+# GitHub Pages: index.html is the builder; docs/*.md are rendered with this theme.
+title: 3D Printable Storage Maker
+description: Design, preview and download a modular, 3D-printable drawer wall.
+theme: jekyll-theme-primer
+exclude:
+  - web
+  - cad
+  - models/step
+  - CONTRIBUTING.md
+  - CHANGELOG.md
+  - LICENSE

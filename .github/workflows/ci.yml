@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  builder:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Geometry, fit, add-on and clearance tests
+        run: npm test
+      - name: Page is up to date
+        run: |
+          npm run build
+          git diff --exit-code -- ../index.html || (echo "Run 'npm run build' in web/ and commit index.html" && exit 1)
